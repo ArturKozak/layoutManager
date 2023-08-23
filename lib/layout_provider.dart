@@ -24,6 +24,7 @@ class LayoutProvider extends StatefulWidget {
 class _LayoutProviderState extends State<LayoutProvider> {
   WebViewController? webViewController;
   bool urlStatus = false;
+  bool isStarted = false;
   String? fetchData;
 
   @override
@@ -37,40 +38,37 @@ class _LayoutProviderState extends State<LayoutProvider> {
       );
 
       if (fetchData != null) {
-        webViewController = WebViewController();
+        webViewController = WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setBackgroundColor(widget.backgroundColor)
+          ..loadRequest(Uri.parse(fetchData!))
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              onPageStarted: (String url) async {
+                final status = await LayoutManager.getLayoutLimiter(
+                  widget.label,
+                  widget.limiter,
+                  url,
+                );
 
-        await webViewController!.setJavaScriptMode(JavaScriptMode.unrestricted);
+                setState(() {
+                  isStarted = true;
+                  urlStatus = status;
+                });
+              },
+              onPageFinished: (String url) async {
+                final status = await LayoutManager.getLayoutLimiter(
+                  widget.label,
+                  widget.limiter,
+                  url,
+                );
 
-        await webViewController!.setBackgroundColor(widget.backgroundColor);
-
-        await webViewController!.loadRequest(Uri.parse(fetchData!));
-
-        await webViewController!.setNavigationDelegate(
-          NavigationDelegate(
-            onPageStarted: (String url) async {
-              final status = await LayoutManager.getLayoutLimiter(
-                widget.label,
-                widget.limiter,
-                url,
-              );
-
-              setState(() {
-                urlStatus = status;
-              });
-            },
-            onPageFinished: (String url) async {
-              final status = await LayoutManager.getLayoutLimiter(
-                widget.label,
-                widget.limiter,
-                url,
-              );
-
-              setState(() {
-                urlStatus = status;
-              });
-            },
-          ),
-        );
+                setState(() {
+                  urlStatus = status;
+                });
+              },
+            ),
+          );
       }
     });
   }
@@ -81,6 +79,10 @@ class _LayoutProviderState extends State<LayoutProvider> {
       backgroundColor: widget.backgroundColor,
       body: LayoutBuilder(
         builder: (context, snapshot) {
+          if (!isStarted) {
+            return const SizedBox();
+          }
+
           if (webViewController == null) {
             return widget.responseWidget;
           }
