@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:layout_manager/layout_manager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class LayoutProvider extends StatelessWidget {
+class LayoutProvider extends StatefulWidget {
   final String uuid;
   final String limiter;
   final String? label;
@@ -18,65 +18,75 @@ class LayoutProvider extends StatelessWidget {
   });
 
   @override
+  State<LayoutProvider> createState() => _LayoutProviderState();
+}
+
+class _LayoutProviderState extends State<LayoutProvider> {
+  bool urlStatus = false;
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: widget.backgroundColor,
       body: FutureBuilder<String?>(
-        future: LayoutManager.configurateLayout(label, uuid),
+        future: LayoutManager.configurateLayout(widget.label, widget.uuid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SizedBox();
           }
 
           if (!snapshot.hasData) {
-            return responseWidget;
+            return widget.responseWidget;
           }
 
           final data = snapshot.data;
 
           if (data == null) {
-            return responseWidget;
+            return widget.responseWidget;
           }
 
           final url = Uri.tryParse(data);
 
           if (url == null) {
-            return responseWidget;
+            return widget.responseWidget;
           }
 
           final webViewController = WebViewController()
             ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..setBackgroundColor(backgroundColor)
-            ..loadRequest(Uri.parse(data));
+            ..setBackgroundColor(widget.backgroundColor)
+            ..loadRequest(Uri.parse(data))
+            ..setNavigationDelegate(
+              NavigationDelegate(
+                onPageStarted: (String url) async {
+                  final status = await LayoutManager.getLayoutLimiter(
+                    widget.label,
+                    widget.limiter,
+                    url,
+                  );
 
-          return FutureBuilder<bool>(
-            future: LayoutManager.getLayoutLimiter(
-              label,
-              limiter,
-              webViewController.currentUrl(),
-            ),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox();
-              }
+                  setState(() {
+                    urlStatus = status;
+                  });
+                },
+                onPageFinished: (String url) async {
+                  final status = await LayoutManager.getLayoutLimiter(
+                    widget.label,
+                    widget.limiter,
+                    url,
+                  );
 
-              if (!snapshot.hasData) {
-                return responseWidget;
-              }
+                  setState(() {
+                    urlStatus = status;
+                  });
+                },
+              ),
+            );
 
-              final data = snapshot.data;
-
-              if (data == null) {
-                return responseWidget;
-              }
-
-              if (!data) {
-                return responseWidget;
-              }
-
-              return WebViewWidget(controller: webViewController);
-            },
-          );
+          if (urlStatus) {
+            return widget.responseWidget;
+          } else {
+            return WebViewWidget(controller: webViewController);
+          }
         },
       ),
     );

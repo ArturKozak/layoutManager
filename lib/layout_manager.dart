@@ -178,15 +178,11 @@ class LayoutManager {
   static Future<bool> getLayoutLimiter(
     String? functionName,
     String limiter,
-    Future<String?> url,
+    String url,
   ) async {
-    final currentUrl = await url;
+    final currentUrl = url;
 
     print(currentUrl);
-
-    if (currentUrl == null) {
-      return false;
-    }
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
