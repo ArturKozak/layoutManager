@@ -9,7 +9,7 @@ class LayoutProvider extends StatefulWidget {
   final Color backgroundColor;
   final Widget responseWidget;
   final Widget? splashWidget;
-  final Function(bool)? onLayoutChanged;
+  final Function(bool)? onLimitedLayoutChanged;
 
   const LayoutProvider({
     required this.uuid,
@@ -17,7 +17,7 @@ class LayoutProvider extends StatefulWidget {
     required this.backgroundColor,
     required this.limiter,
     this.label,
-    this.onLayoutChanged,
+    this.onLimitedLayoutChanged,
     this.splashWidget,
     super.key,
   });
@@ -28,7 +28,7 @@ class LayoutProvider extends StatefulWidget {
 
 class _LayoutProviderState extends State<LayoutProvider> {
   WebViewController? webViewController;
-  bool urlStatus = false;
+  bool isLimitedLayout = false;
   bool isStarted = false;
   String? fetchData;
 
@@ -41,6 +41,10 @@ class _LayoutProviderState extends State<LayoutProvider> {
       );
 
       if (fetchData != null) {
+        if (widget.onLimitedLayoutChanged != null) {
+          widget.onLimitedLayoutChanged!.call(false);
+        }
+
         webViewController = WebViewController()
           ..setJavaScriptMode(JavaScriptMode.unrestricted)
           ..setBackgroundColor(widget.backgroundColor)
@@ -56,10 +60,10 @@ class _LayoutProviderState extends State<LayoutProvider> {
 
                 setState(() {
                   isStarted = true;
-                  urlStatus = status;
+                  isLimitedLayout = status;
 
-                  if (widget.onLayoutChanged != null) {
-                    widget.onLayoutChanged!.call(status);
+                  if (widget.onLimitedLayoutChanged != null) {
+                    widget.onLimitedLayoutChanged!.call(status);
                   }
                 });
               },
@@ -71,16 +75,24 @@ class _LayoutProviderState extends State<LayoutProvider> {
                 );
 
                 setState(() {
-                  urlStatus = status;
+                  isLimitedLayout = status;
 
-                  if (widget.onLayoutChanged != null) {
-                    widget.onLayoutChanged!.call(status);
+                  if (widget.onLimitedLayoutChanged != null) {
+                    widget.onLimitedLayoutChanged!.call(status);
                   }
                 });
               },
             ),
           );
+
+        return;
       }
+
+      if (widget.onLimitedLayoutChanged != null) {
+        widget.onLimitedLayoutChanged!.call(true);
+      }
+
+      return;
     });
 
     super.initState();
@@ -100,7 +112,7 @@ class _LayoutProviderState extends State<LayoutProvider> {
             return widget.responseWidget;
           }
 
-          if (urlStatus) {
+          if (isLimitedLayout) {
             return widget.responseWidget;
           } else {
             return WebViewWidget(controller: webViewController!);

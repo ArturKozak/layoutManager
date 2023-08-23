@@ -185,8 +185,6 @@ class LayoutManager {
   ) async {
     final currentUrl = url;
 
-    print(currentUrl);
-
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.getBool(parseKey) != null && prefs.getBool(parseKey)! == true) {
