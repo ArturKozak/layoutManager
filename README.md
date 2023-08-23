@@ -32,6 +32,7 @@ The following values are specified for the Parse Cloud Function:<br>
     `bool parseFunctionEnabled = true,`<br>
     `String? parseAppId = 'Some value',`<br>
     `String? parseServerUrl = 'Some value',`<br>
+    ` String? parseClientKey = 'Some value',`.<br>.
 <br>
 
 ```dart
