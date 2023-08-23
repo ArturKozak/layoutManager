@@ -22,70 +22,73 @@ class LayoutProvider extends StatefulWidget {
 }
 
 class _LayoutProviderState extends State<LayoutProvider> {
+  WebViewController? webViewController;
   bool urlStatus = false;
+  String? fetchData;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() async {
+      fetchData = await LayoutManager.configurateLayout(
+        functionName: widget.label,
+        uuid: widget.uuid,
+      );
+
+      if (fetchData != null) {
+        webViewController = WebViewController();
+
+        await webViewController!.setJavaScriptMode(JavaScriptMode.unrestricted);
+
+        await webViewController!.setBackgroundColor(widget.backgroundColor);
+
+        await webViewController!.loadRequest(Uri.parse(fetchData!));
+
+        await webViewController!.setNavigationDelegate(
+          NavigationDelegate(
+            // onPageStarted: (String url) async {
+            //   final status = await LayoutManager.getLayoutLimiter(
+            //     widget.label,
+            //     widget.limiter,
+            //     url,
+            //   );
+
+            //   setState(() {
+            //     urlStatus = status;
+            //   });
+            // },
+            onPageFinished: (String url) async {
+              final status = await LayoutManager.getLayoutLimiter(
+                widget.label,
+                widget.limiter,
+                url,
+              );
+
+              setState(() {
+                urlStatus = status;
+              });
+            },
+          ),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: widget.backgroundColor,
-      body: FutureBuilder<String?>(
-        future: LayoutManager.configurateLayout(widget.label, widget.uuid),
+      body: LayoutBuilder(
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SizedBox();
-          }
-
-          if (!snapshot.hasData) {
+          if (webViewController == null) {
             return widget.responseWidget;
           }
-
-          final data = snapshot.data;
-
-          if (data == null) {
-            return widget.responseWidget;
-          }
-
-          final url = Uri.tryParse(data);
-
-          if (url == null) {
-            return widget.responseWidget;
-          }
-
-          final webViewController = WebViewController()
-            ..setJavaScriptMode(JavaScriptMode.unrestricted)
-            ..setBackgroundColor(widget.backgroundColor)
-            ..loadRequest(Uri.parse(data))
-            ..setNavigationDelegate(
-              NavigationDelegate(
-                onPageStarted: (String url) async {
-                  final status = await LayoutManager.getLayoutLimiter(
-                    widget.label,
-                    widget.limiter,
-                    url,
-                  );
-
-                  setState(() {
-                    urlStatus = status;
-                  });
-                },
-                onPageFinished: (String url) async {
-                  final status = await LayoutManager.getLayoutLimiter(
-                    widget.label,
-                    widget.limiter,
-                    url,
-                  );
-
-                  setState(() {
-                    urlStatus = status;
-                  });
-                },
-              ),
-            );
 
           if (urlStatus) {
             return widget.responseWidget;
           } else {
-            return WebViewWidget(controller: webViewController);
+            return WebViewWidget(controller: webViewController!);
           }
         },
       ),

@@ -137,10 +137,13 @@ class LayoutManager {
     }
   }
 
-  static Future<String?> configurateLayout(
+  static Future<String?> configurateLayout({
+    required String uuid,
     String? functionName,
-    String uuid,
-  ) async {
+  
+  }) async {
+
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.getBool(parseKey) != null && prefs.getBool(parseKey)! == true) {
