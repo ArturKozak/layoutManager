@@ -5,20 +5,20 @@ import 'package:webview_flutter/webview_flutter.dart';
 class LayoutProvider extends StatelessWidget {
   final String uuid;
   final String? label;
-  final Color? backgroundCoor;
+  final Color backgroundColor;
   final Widget responseWidget;
   const LayoutProvider({
     required this.uuid,
     required this.responseWidget,
+    required this.backgroundColor,
     this.label,
-    this.backgroundCoor,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundCoor,
+      backgroundColor: backgroundColor,
       body: FutureBuilder<String?>(
         future: LayoutManager.configurateLayout(label, uuid),
         builder: (context, snapshot) {
@@ -27,7 +27,7 @@ class LayoutProvider extends StatelessWidget {
           }
 
           if (!snapshot.hasData) {
-            return const SizedBox();
+            return responseWidget;
           }
 
           final data = snapshot.data;
@@ -38,6 +38,7 @@ class LayoutProvider extends StatelessWidget {
 
           final webViewController = WebViewController()
             ..setJavaScriptMode(JavaScriptMode.unrestricted)
+            ..setBackgroundColor(backgroundColor)
             ..loadRequest(Uri.parse(data));
 
           return WebViewWidget(controller: webViewController);
