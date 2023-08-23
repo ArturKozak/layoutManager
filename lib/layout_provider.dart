@@ -29,8 +29,6 @@ class _LayoutProviderState extends State<LayoutProvider> {
 
   @override
   void initState() {
-    super.initState();
-
     Future.sync(() async {
       fetchData = await LayoutManager.configurateLayout(
         functionName: widget.label,
@@ -71,6 +69,8 @@ class _LayoutProviderState extends State<LayoutProvider> {
           );
       }
     });
+
+    super.initState();
   }
 
   @override
