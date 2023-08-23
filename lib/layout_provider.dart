@@ -8,12 +8,14 @@ class LayoutProvider extends StatefulWidget {
   final String? label;
   final Color backgroundColor;
   final Widget responseWidget;
+  final Widget? splashWidget;
   const LayoutProvider({
     required this.uuid,
     required this.responseWidget,
     required this.backgroundColor,
     required this.limiter,
     this.label,
+    this.splashWidget,
     super.key,
   });
 
@@ -80,7 +82,7 @@ class _LayoutProviderState extends State<LayoutProvider> {
       body: LayoutBuilder(
         builder: (context, snapshot) {
           if (!isStarted) {
-            return const SizedBox();
+            return widget.splashWidget ?? const SizedBox();
           }
 
           if (webViewController == null) {
