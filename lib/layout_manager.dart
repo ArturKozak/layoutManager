@@ -174,4 +174,69 @@ class LayoutManager {
 
     return null;
   }
+
+  static Future<bool> getLayoutLimiter(
+    String? functionName,
+    String limiter,
+    Future<String?> url,
+  ) async {
+    final currentUrl = await url;
+
+    print(currentUrl);
+
+    if (currentUrl == null) {
+      return false;
+    }
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (prefs.getBool(parseKey) != null && prefs.getBool(parseKey)! == true) {
+      if (prefs.getBool(parseFunctionKey) != null &&
+          prefs.getBool(parseFunctionKey)! == true) {
+        final value =
+            await getValueFromParseCloudFunction(functionName ?? '', limiter);
+
+        if (value == null &&
+            prefs.getBool(parseRemoteKey) != null &&
+            prefs.getBool(parseRemoteKey)! == true) {
+          final value = await getValueFromParseRemoteConfig(limiter);
+
+          if (value == null) {
+            return false;
+          }
+
+          return currentUrl.contains(value);
+        }
+
+        return currentUrl.contains(value!);
+      }
+
+      if (prefs.getBool(parseRemoteKey) != null &&
+          prefs.getBool(parseRemoteKey)! == true) {
+        final value = await getValueFromParseRemoteConfig(limiter);
+
+        if (value == null) {
+          return false;
+        }
+
+        return currentUrl.contains(value);
+      }
+    }
+
+    if (prefs.getBool(firebaseKey) != null &&
+        prefs.getBool(firebaseKey)! == true) {
+      if (prefs.getBool(firebaseRemoteKey) != null &&
+          prefs.getBool(firebaseRemoteKey)! == true) {
+        final value = await getValueFromFirebaseRemoteConfig(limiter);
+
+        if (value == null) {
+          return false;
+        }
+
+        return currentUrl.contains(value);
+      }
+    }
+
+    return false;
+  }
 }

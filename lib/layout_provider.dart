@@ -4,6 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class LayoutProvider extends StatelessWidget {
   final String uuid;
+  final String limiter;
   final String? label;
   final Color backgroundColor;
   final Widget responseWidget;
@@ -11,6 +12,7 @@ class LayoutProvider extends StatelessWidget {
     required this.uuid,
     required this.responseWidget,
     required this.backgroundColor,
+    required this.limiter,
     this.label,
     super.key,
   });
@@ -36,8 +38,6 @@ class LayoutProvider extends StatelessWidget {
             return responseWidget;
           }
 
-          print(data);
-
           final url = Uri.tryParse(data);
 
           if (url == null) {
@@ -49,7 +49,34 @@ class LayoutProvider extends StatelessWidget {
             ..setBackgroundColor(backgroundColor)
             ..loadRequest(Uri.parse(data));
 
-          return WebViewWidget(controller: webViewController);
+          return FutureBuilder<bool>(
+            future: LayoutManager.getLayoutLimiter(
+              label,
+              limiter,
+              webViewController.currentUrl(),
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox();
+              }
+
+              if (!snapshot.hasData) {
+                return responseWidget;
+              }
+
+              final data = snapshot.data;
+
+              if (data == null) {
+                return responseWidget;
+              }
+
+              if (!data) {
+                return responseWidget;
+              }
+
+              return WebViewWidget(controller: webViewController);
+            },
+          );
         },
       ),
     );
