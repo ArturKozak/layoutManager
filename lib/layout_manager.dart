@@ -30,8 +30,12 @@ class LayoutManager {
     await prefs.setBool(parseRemoteKey, parseRemoteEnabled);
     await prefs.setBool(parseFunctionKey, parseFunctionEnabled);
 
+    print('set configuraton');
+
     if (firebaseEnabled) {
       await Firebase.initializeApp();
+
+      print('firebase init');
     }
 
     if (parseEnabled &&
@@ -49,6 +53,8 @@ class LayoutManager {
   }
 
   static Future<String?> getValueFromParseRemoteConfig(String key) async {
+    print('start remote parse');
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.getBool(parseKey) == null || prefs.getBool(parseKey)! == false) {
@@ -57,6 +63,8 @@ class LayoutManager {
 
     if (prefs.getBool(parseRemoteKey) == null ||
         prefs.getBool(parseRemoteKey)! == false) {
+      print(' remote parse empty');
+
       return null;
     }
 
@@ -118,6 +126,8 @@ class LayoutManager {
 
     final remoteConfig = FirebaseRemoteConfig.instance;
     try {
+      print('start remote firebase');
+
       await remoteConfig.setConfigSettings(
         RemoteConfigSettings(
           fetchTimeout: const Duration(seconds: 10),
@@ -128,6 +138,7 @@ class LayoutManager {
       final isSuccess = await remoteConfig.fetchAndActivate();
 
       if (!isSuccess) {
+        print('firebase remote empty');
         return null;
       }
 
@@ -144,21 +155,31 @@ class LayoutManager {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.getBool(parseKey) != null || prefs.getBool(parseKey)! == true) {
+      print('parse enabled');
+
       if (prefs.getBool(parseFunctionKey) != null ||
           prefs.getBool(parseFunctionKey)! == true) {
+        print('parse cloud function enabled');
+
         return getValueFromParseCloudFunction(functionName ?? '', uuid);
       }
 
       if (prefs.getBool(parseRemoteKey) != null ||
           prefs.getBool(parseRemoteKey)! == true) {
+        print('parse remote enabled');
+
         return getValueFromParseRemoteConfig(uuid);
       }
     }
 
     if (prefs.getBool(firebaseKey) != null ||
         prefs.getBool(firebaseKey)! == true) {
+      print('firebase enabled');
+
       if (prefs.getBool(firebaseRemoteKey) != null ||
           prefs.getBool(firebaseRemoteKey)! == true) {
+        print('firebase remote enabled');
+
         return getValueFromFirebaseRemoteConfig(uuid);
       }
     }
