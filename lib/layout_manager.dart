@@ -12,12 +12,22 @@ class LayoutManager {
 
   const LayoutManager();
 
+  static bool _or(SharedPreferences prefs, String key) {
+    return prefs.getBool(key) == null || prefs.getBool(key)! == false;
+  }
+
+  static bool _and(SharedPreferences prefs, String key) {
+    return prefs.getBool(key) == null || prefs.getBool(key)! == false;
+  }
+
   static Future<void> initPlugin({
     bool firebaseEnabled = false,
     bool firebaseRemoteEnabled = false,
     bool parseEnabled = false,
     bool parseRemoteEnabled = false,
     bool parseFunctionEnabled = false,
+    List<String>? keys,
+    String? limitedKey,
     String? parseAppId,
     String? parseServerUrl,
     String? parseClientKey,
@@ -34,8 +44,24 @@ class LayoutManager {
       await Firebase.initializeApp();
 
       final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(seconds: 30),
+          minimumFetchInterval: Duration.zero,
+        ),
+      );
 
       await remoteConfig.fetch();
+
+      await remoteConfig.fetchAndActivate();
+
+      await prefs.setString(limitedKey!, remoteConfig.getString(limitedKey));
+
+      for (final key in keys!) {
+        final value = remoteConfig.getString(key);
+
+        await prefs.setString(key, value);
+      }
     }
 
     if (parseEnabled &&
@@ -47,6 +73,18 @@ class LayoutManager {
         parseServerUrl,
         clientKey: parseClientKey,
       );
+
+      final values = await ParseConfig().getConfigs();
+
+      final instance = values.result as Map<String, dynamic>;
+
+      await prefs.setString(limitedKey!, instance[limitedKey]);
+
+      for (final key in keys!) {
+        final value = instance[key];
+
+        await prefs.setString(key, value);
+      }
     }
 
     return;
@@ -55,21 +93,16 @@ class LayoutManager {
   static Future<String?> getValueFromParseRemoteConfig(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getBool(parseKey) == null || prefs.getBool(parseKey)! == false) {
+    if (_or(prefs, parseKey)) {
       return null;
     }
 
-    if (prefs.getBool(parseRemoteKey) == null ||
-        prefs.getBool(parseRemoteKey)! == false) {
+    if (_or(prefs, parseRemoteKey)) {
       return null;
     }
 
     try {
-      final values = await ParseConfig().getConfigs();
-
-      final instance = values.result as Map<String, dynamic>;
-
-      return instance[key];
+      return prefs.getString(key);
     } on Exception catch (_) {
       return null;
     }
@@ -83,12 +116,11 @@ class LayoutManager {
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getBool(parseKey) == null || prefs.getBool(parseKey)! == false) {
+    if (_or(prefs, parseKey)) {
       return null;
     }
 
-    if (prefs.getBool(parseFunctionKey) == null ||
-        prefs.getBool(parseFunctionKey)! == false) {
+    if (_or(prefs, parseFunctionKey)) {
       return null;
     }
 
@@ -110,28 +142,16 @@ class LayoutManager {
   static Future<String?> getValueFromFirebaseRemoteConfig(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getBool(firebaseKey) == null ||
-        prefs.getBool(firebaseKey)! == false) {
+    if (_or(prefs, firebaseKey)) {
       return null;
     }
 
-    if (prefs.getBool(firebaseRemoteKey) == null ||
-        prefs.getBool(firebaseRemoteKey)! == false) {
+    if (_or(prefs, firebaseRemoteKey)) {
       return null;
     }
 
     try {
-      final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setConfigSettings(
-        RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: Duration.zero,
-        ),
-      );
-
-      await remoteConfig.fetchAndActivate();
-
-      return remoteConfig.getString(key);
+      return prefs.getString(key);
     } on Exception catch (_) {
       return null;
     }
@@ -140,37 +160,28 @@ class LayoutManager {
   static Future<String?> configurateLayout({
     required String uuid,
     String? functionName,
-  
   }) async {
-
-
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getBool(parseKey) != null && prefs.getBool(parseKey)! == true) {
-      if (prefs.getBool(parseFunctionKey) != null &&
-          prefs.getBool(parseFunctionKey)! == true) {
+    if (_and(prefs, parseKey)) {
+      if (_and(prefs, parseFunctionKey)) {
         final value =
             await getValueFromParseCloudFunction(functionName ?? '', uuid);
 
-        if (value == null &&
-            prefs.getBool(parseRemoteKey) != null &&
-            prefs.getBool(parseRemoteKey)! == true) {
+        if (value == null && _and(prefs, parseRemoteKey)) {
           return getValueFromParseRemoteConfig(uuid);
         }
 
         return value;
       }
 
-      if (prefs.getBool(parseRemoteKey) != null &&
-          prefs.getBool(parseRemoteKey)! == true) {
+      if (_and(prefs, parseRemoteKey)) {
         return getValueFromParseRemoteConfig(uuid);
       }
     }
 
-    if (prefs.getBool(firebaseKey) != null &&
-        prefs.getBool(firebaseKey)! == true) {
-      if (prefs.getBool(firebaseRemoteKey) != null &&
-          prefs.getBool(firebaseRemoteKey)! == true) {
+    if (_and(prefs, firebaseKey)) {
+      if (_and(prefs, firebaseRemoteKey)) {
         return getValueFromFirebaseRemoteConfig(uuid);
       }
     }
@@ -187,15 +198,12 @@ class LayoutManager {
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    if (prefs.getBool(parseKey) != null && prefs.getBool(parseKey)! == true) {
-      if (prefs.getBool(parseFunctionKey) != null &&
-          prefs.getBool(parseFunctionKey)! == true) {
+    if (_and(prefs, parseKey)) {
+      if (_and(prefs, parseFunctionKey)) {
         final value =
             await getValueFromParseCloudFunction(functionName ?? '', limiter);
 
-        if (value == null &&
-            prefs.getBool(parseRemoteKey) != null &&
-            prefs.getBool(parseRemoteKey)! == true) {
+        if (value == null && _and(prefs, parseRemoteKey)) {
           final value = await getValueFromParseRemoteConfig(limiter);
 
           if (value == null) {
@@ -208,8 +216,7 @@ class LayoutManager {
         return currentUrl.contains(value!);
       }
 
-      if (prefs.getBool(parseRemoteKey) != null &&
-          prefs.getBool(parseRemoteKey)! == true) {
+      if (_and(prefs, parseRemoteKey)) {
         final value = await getValueFromParseRemoteConfig(limiter);
 
         if (value == null) {
@@ -220,10 +227,8 @@ class LayoutManager {
       }
     }
 
-    if (prefs.getBool(firebaseKey) != null &&
-        prefs.getBool(firebaseKey)! == true) {
-      if (prefs.getBool(firebaseRemoteKey) != null &&
-          prefs.getBool(firebaseRemoteKey)! == true) {
+    if (_and(prefs, firebaseKey)) {
+      if (_and(prefs, firebaseRemoteKey)) {
         final value = await getValueFromFirebaseRemoteConfig(limiter);
 
         if (value == null) {
