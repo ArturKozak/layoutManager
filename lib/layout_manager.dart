@@ -48,7 +48,7 @@ class LayoutManager {
     return;
   }
 
-  Future<String?> getValueFromParseRemoteConfig(String key) async {
+  static Future<String?> getValueFromParseRemoteConfig(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.getBool(parseKey) == null || prefs.getBool(parseKey)! == false) {
@@ -71,7 +71,7 @@ class LayoutManager {
     }
   }
 
-  Future<String?> getValueFromParseCloudFunction(
+  static Future<String?> getValueFromParseCloudFunction(
       String functionName, String key) async {
     if (functionName.isEmpty) {
       return null;
@@ -103,7 +103,7 @@ class LayoutManager {
     }
   }
 
-  Future<String?> getValueFromFirebaseRemoteConfig(String key) async {
+  static Future<String?> getValueFromFirebaseRemoteConfig(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.getBool(firebaseKey) == null ||
@@ -137,7 +137,7 @@ class LayoutManager {
     }
   }
 
-  Future<String?> configurateLayout(
+  static Future<String?> configurateLayout(
     String? functionName,
     String uuid,
   ) async {

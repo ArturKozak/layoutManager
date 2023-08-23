@@ -20,7 +20,7 @@ class LayoutProvider extends StatelessWidget {
     return Scaffold(
       backgroundColor: backgroundCoor,
       body: FutureBuilder<String?>(
-        future: const LayoutManager().configurateLayout(label, uuid),
+        future: LayoutManager.configurateLayout(label, uuid),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SizedBox();
