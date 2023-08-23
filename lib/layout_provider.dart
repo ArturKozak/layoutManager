@@ -9,12 +9,15 @@ class LayoutProvider extends StatefulWidget {
   final Color backgroundColor;
   final Widget responseWidget;
   final Widget? splashWidget;
+  final Function(bool)? onLayoutChanged;
+
   const LayoutProvider({
     required this.uuid,
     required this.responseWidget,
     required this.backgroundColor,
     required this.limiter,
     this.label,
+    this.onLayoutChanged,
     this.splashWidget,
     super.key,
   });
@@ -54,6 +57,10 @@ class _LayoutProviderState extends State<LayoutProvider> {
                 setState(() {
                   isStarted = true;
                   urlStatus = status;
+
+                  if (widget.onLayoutChanged != null) {
+                    widget.onLayoutChanged!.call(status);
+                  }
                 });
               },
               onPageFinished: (String url) async {
@@ -65,6 +72,10 @@ class _LayoutProviderState extends State<LayoutProvider> {
 
                 setState(() {
                   urlStatus = status;
+
+                  if (widget.onLayoutChanged != null) {
+                    widget.onLayoutChanged!.call(status);
+                  }
                 });
               },
             ),
