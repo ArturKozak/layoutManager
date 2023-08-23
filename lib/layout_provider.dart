@@ -36,6 +36,14 @@ class LayoutProvider extends StatelessWidget {
             return responseWidget;
           }
 
+          print(data);
+
+          final url = Uri.tryParse(data);
+
+          if (url == null) {
+            return responseWidget;
+          }
+
           final webViewController = WebViewController()
             ..setJavaScriptMode(JavaScriptMode.unrestricted)
             ..setBackgroundColor(backgroundColor)
