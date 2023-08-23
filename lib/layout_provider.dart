@@ -30,7 +30,7 @@ class _LayoutProviderState extends State<LayoutProvider> {
   void initState() {
     super.initState();
 
-    Future.microtask(() async {
+    Future.sync(() async {
       fetchData = await LayoutManager.configurateLayout(
         functionName: widget.label,
         uuid: widget.uuid,
@@ -47,17 +47,17 @@ class _LayoutProviderState extends State<LayoutProvider> {
 
         await webViewController!.setNavigationDelegate(
           NavigationDelegate(
-            // onPageStarted: (String url) async {
-            //   final status = await LayoutManager.getLayoutLimiter(
-            //     widget.label,
-            //     widget.limiter,
-            //     url,
-            //   );
+            onPageStarted: (String url) async {
+              final status = await LayoutManager.getLayoutLimiter(
+                widget.label,
+                widget.limiter,
+                url,
+              );
 
-            //   setState(() {
-            //     urlStatus = status;
-            //   });
-            // },
+              setState(() {
+                urlStatus = status;
+              });
+            },
             onPageFinished: (String url) async {
               final status = await LayoutManager.getLayoutLimiter(
                 widget.label,
