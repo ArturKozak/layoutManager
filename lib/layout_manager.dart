@@ -139,6 +139,8 @@ class LayoutManager {
         ),
       );
 
+      await remoteConfig.fetchAndActivate();
+
       return remoteConfig.getString(key);
     } on Exception catch (_) {
       return null;
