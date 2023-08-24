@@ -3,6 +3,8 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dart:async';
+
 class LayoutManager {
   static const firebaseKey = 'firebaseKey';
   static const firebaseRemoteKey = 'firebaseRemoteKey';
@@ -10,14 +12,12 @@ class LayoutManager {
   static const parseRemoteKey = 'parseRemoteKey';
   static const parseFunctionKey = 'parseFunctionKey';
 
-  const LayoutManager();
-
   static bool _or(SharedPreferences prefs, String key) {
     return prefs.getBool(key) == null || prefs.getBool(key)! == false;
   }
 
   static bool _and(SharedPreferences prefs, String key) {
-    return prefs.getBool(key) == null || prefs.getBool(key)! == false;
+    return prefs.getBool(key) != null && prefs.getBool(key)! != false;
   }
 
   static Future<void> initPlugin({
@@ -90,9 +90,10 @@ class LayoutManager {
     return;
   }
 
-  static Future<String?> getValueFromParseRemoteConfig(String key) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
+  static Future<String?> getValueFromParseRemoteConfig(
+    String key,
+    SharedPreferences prefs,
+  ) async {
     if (_or(prefs, parseKey)) {
       return null;
     }
@@ -109,12 +110,13 @@ class LayoutManager {
   }
 
   static Future<String?> getValueFromParseCloudFunction(
-      String functionName, String key) async {
+    String functionName,
+    String key,
+    SharedPreferences prefs,
+  ) async {
     if (functionName.isEmpty) {
       return null;
     }
-
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (_or(prefs, parseKey)) {
       return null;
@@ -139,9 +141,10 @@ class LayoutManager {
     }
   }
 
-  static Future<String?> getValueFromFirebaseRemoteConfig(String key) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
+  static Future<String?> getValueFromFirebaseRemoteConfig(
+    SharedPreferences prefs,
+    String key,
+  ) async {
     if (_or(prefs, firebaseKey)) {
       return null;
     }
@@ -165,24 +168,36 @@ class LayoutManager {
 
     if (_and(prefs, parseKey)) {
       if (_and(prefs, parseFunctionKey)) {
-        final value =
-            await getValueFromParseCloudFunction(functionName ?? '', uuid);
+        final value = await getValueFromParseCloudFunction(
+          functionName ?? '',
+          uuid,
+          prefs,
+        );
 
         if (value == null && _and(prefs, parseRemoteKey)) {
-          return getValueFromParseRemoteConfig(uuid);
+          return getValueFromParseRemoteConfig(
+            uuid,
+            prefs,
+          );
         }
 
         return value;
       }
 
       if (_and(prefs, parseRemoteKey)) {
-        return getValueFromParseRemoteConfig(uuid);
+        return getValueFromParseRemoteConfig(
+          uuid,
+          prefs,
+        );
       }
     }
 
     if (_and(prefs, firebaseKey)) {
       if (_and(prefs, firebaseRemoteKey)) {
-        return getValueFromFirebaseRemoteConfig(uuid);
+        return getValueFromFirebaseRemoteConfig(
+          prefs,
+          uuid,
+        );
       }
     }
 
@@ -200,11 +215,17 @@ class LayoutManager {
 
     if (_and(prefs, parseKey)) {
       if (_and(prefs, parseFunctionKey)) {
-        final value =
-            await getValueFromParseCloudFunction(functionName ?? '', limiter);
+        final value = await getValueFromParseCloudFunction(
+          functionName ?? '',
+          limiter,
+          prefs,
+        );
 
         if (value == null && _and(prefs, parseRemoteKey)) {
-          final value = await getValueFromParseRemoteConfig(limiter);
+          final value = await getValueFromParseRemoteConfig(
+            limiter,
+            prefs,
+          );
 
           if (value == null) {
             return false;
@@ -217,7 +238,10 @@ class LayoutManager {
       }
 
       if (_and(prefs, parseRemoteKey)) {
-        final value = await getValueFromParseRemoteConfig(limiter);
+        final value = await getValueFromParseRemoteConfig(
+          limiter,
+          prefs,
+        );
 
         if (value == null) {
           return false;
@@ -229,7 +253,10 @@ class LayoutManager {
 
     if (_and(prefs, firebaseKey)) {
       if (_and(prefs, firebaseRemoteKey)) {
-        final value = await getValueFromFirebaseRemoteConfig(limiter);
+        final value = await getValueFromFirebaseRemoteConfig(
+          prefs,
+          limiter,
+        );
 
         if (value == null) {
           return false;
