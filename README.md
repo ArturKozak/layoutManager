@@ -9,6 +9,8 @@ static Future<void> initPlugin({
     bool parseEnabled = false,
     bool parseRemoteEnabled = false,
     bool parseFunctionEnabled = false,
+    List<String>? keys,
+    String? limitedKey,
     String? parseAppId,
     String? parseServerUrl,
     String? parseClientKey,
@@ -34,7 +36,11 @@ The following values are specified for the Parse Cloud Function:<br>
     `String? parseServerUrl = 'Some value',`<br>
     ` String? parseClientKey = 'Some value',`.<br>.
 <br>
-
+    `List<String>? keys`,<br>
+keys field all keys that are used for links.<br>
+    `String? limitedKey`,<br>
+The limitedKey field is the name of the key to filter out restrictions<br>
+    
 ```dart
 class LayoutProvider{
   final String uuid;
