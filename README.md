@@ -46,7 +46,8 @@ class LayoutProvider{
   final String uuid;
   final String? label;
   final Color backgroundColor;
-  final Widget responseWidget; 
+  final Widget responseWidget;
+  final Function(bool)? onLimitedLayoutChanged;
 }
 ```
 
@@ -55,3 +56,4 @@ This is a wrapper widget for displaying context.<br>
   `final String? label = the name of the cloud function;`<br>
   `final Colour backgroundColor = colour for the transition;`<br>
   `final Widget responseWidget = the main widget to display if there is no data from the database;` <br>
+  `final Function(bool)? onLimitedLayoutChanged = state monitoring, the bool value can be used in controllers, for example, to show or not the AppBar;` <br>

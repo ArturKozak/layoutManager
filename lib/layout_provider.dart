@@ -39,8 +39,43 @@ class _LayoutProviderState extends State<LayoutProvider>
   bool isOffline = false;
   String? fetchData;
 
-// @override
-//   void reload() {}
+  Future<void> _loadConnectionChecker() async {
+    _onSubscription =
+        Connectivity().onConnectivityChanged.listen((connectivityResult) async {
+      if (connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.wifi ||
+          connectivityResult == ConnectivityResult.ethernet) {
+        setState(() {
+          reload();
+
+          isOffline = false;
+        });
+      }
+
+      if (connectivityResult == ConnectivityResult.none) {
+        setState(() {
+          reload();
+
+          isOffline = true;
+        });
+      }
+    });
+
+    final result = await Connectivity().checkConnectivity();
+    if (result == ConnectivityResult.mobile ||
+        result == ConnectivityResult.wifi ||
+        result == ConnectivityResult.ethernet) {
+      setState(() {
+        isOffline = false;
+      });
+    }
+
+    if (result == ConnectivityResult.none) {
+      setState(() {
+        isOffline = true;
+      });
+    }
+  }
 
   @override
   Future<void> load() async {
@@ -100,37 +135,7 @@ class _LayoutProviderState extends State<LayoutProvider>
       widget.onLimitedLayoutChanged!.call(true);
     }
 
-    _onSubscription =
-        Connectivity().onConnectivityChanged.listen((connectivityResult) async {
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi ||
-          connectivityResult == ConnectivityResult.ethernet) {
-        setState(() {
-          isOffline = false;
-        });
-      }
-
-      if (connectivityResult == ConnectivityResult.none) {
-        setState(() {
-          isOffline = true;
-        });
-      }
-    });
-
-    final result = await Connectivity().checkConnectivity();
-    if (result == ConnectivityResult.mobile ||
-        result == ConnectivityResult.wifi ||
-        result == ConnectivityResult.ethernet) {
-      setState(() {
-        isOffline = false;
-      });
-    }
-
-    if (result == ConnectivityResult.none) {
-      setState(() {
-        isOffline = true;
-      });
-    }
+    await _loadConnectionChecker();
 
     return;
   }
