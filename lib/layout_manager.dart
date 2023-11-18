@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,6 +12,7 @@ class LayoutManager {
   static const parseKey = 'parseKey';
   static const parseRemoteKey = 'parseRemoteKey';
   static const parseFunctionKey = 'parseFunctionKey';
+  static const oneSignalKey = 'oneSignalKey';
 
   static bool _or(SharedPreferences prefs, String key) {
     return prefs.getBool(key) == null || prefs.getBool(key)! == false;
@@ -18,6 +20,29 @@ class LayoutManager {
 
   static bool _and(SharedPreferences prefs, String key) {
     return prefs.getBool(key) != null && prefs.getBool(key)! != false;
+  }
+
+  static Future<void> initOneSignal(
+      {required String key,
+      void Function(OSNotificationReceivedEvent)? handler}) async {
+    await OneSignal.shared.setAppId(key);
+
+    if (handler != null) {
+      OneSignal.shared.setNotificationWillShowInForegroundHandler(
+        (event) => handler.call(event),
+      );
+    }
+  }
+
+  static Future<void> eventOfOneSignal(
+      {void Function(OSNotificationOpenedResult)? handler}) async {
+    if (handler != null) {
+      OneSignal.shared.setNotificationOpenedHandler(
+        (event) {
+          handler.call(event);
+        },
+      );
+    }
   }
 
   static Future<void> initPlugin({
