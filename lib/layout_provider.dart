@@ -142,7 +142,7 @@ class _LayoutProviderState extends State<LayoutProvider>
 
   @override
   void dispose() {
-    _onSubscription.cancel();
+  
 
     super.dispose();
   }
