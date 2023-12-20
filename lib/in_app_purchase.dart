@@ -196,7 +196,7 @@ class PaymentService {
   }
 
   Future<void> buyProduct(String id) {
-    return FlutterInappPurchase.instance.requestSubscription(id);
+    return FlutterInappPurchase.instance.requestPurchase(id);
   }
 
   void dispose() {
