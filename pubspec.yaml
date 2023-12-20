@@ -17,6 +17,7 @@ dependencies:
   firebase_remote_config: ^4.2.5
   shared_preferences: ^2.2.0
   webview_flutter: ^4.2.3
+  flutter_inapp_purchase: ^5.4.2
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:layout_manager/in_app_purchase.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,6 +13,8 @@ class LayoutManager {
   static const parseRemoteKey = 'parseRemoteKey';
   static const parseFunctionKey = 'parseFunctionKey';
 
+  static PaymentService paymentService = PaymentService.instance;
+  
   static bool _or(SharedPreferences prefs, String key) {
     return prefs.getBool(key) == null || prefs.getBool(key)! == false;
   }
@@ -26,6 +29,8 @@ class LayoutManager {
     bool parseEnabled = false,
     bool parseRemoteEnabled = false,
     bool parseFunctionEnabled = false,
+     bool isPurchaseLiteEnabled = false,
+     List<String>? productsList,
     List<String>? keys,
     String? limitedKey,
     String? parseAppId,
@@ -63,6 +68,12 @@ class LayoutManager {
         await prefs.setString(key, value);
       }
     }
+
+  if (isPurchaseLiteEnabled &&
+          productsList != null &&
+          productsList.isNotEmpty) {
+        await paymentService.initConnection(productsList);
+      }
 
     if (parseEnabled &&
         parseAppId != null &&
