@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -79,10 +81,7 @@ class _LayoutProviderState extends State<LayoutProvider>
 
   @override
   Future<void> load() async {
-    fetchData = await LayoutManager.configurateLayout(
-      functionName: widget.label,
-      uuid: widget.uuid,
-    );
+    fetchData = await LayoutManager.instance.configurateLayout();
 
     if (fetchData != null) {
       if (widget.onLimitedLayoutChanged != null) {
@@ -96,9 +95,7 @@ class _LayoutProviderState extends State<LayoutProvider>
         ..setNavigationDelegate(
           NavigationDelegate(
             onPageStarted: (String url) async {
-              final status = await LayoutManager.getLayoutLimiter(
-                widget.label,
-                widget.limiter,
+              final status = await LayoutManager.instance.getLayoutLimiter(
                 url,
               );
 
@@ -111,9 +108,7 @@ class _LayoutProviderState extends State<LayoutProvider>
               });
             },
             onPageFinished: (String url) async {
-              final status = await LayoutManager.getLayoutLimiter(
-                widget.label,
-                widget.limiter,
+              final status = await LayoutManager.instance.getLayoutLimiter(
                 url,
               );
 
@@ -142,8 +137,6 @@ class _LayoutProviderState extends State<LayoutProvider>
 
   @override
   void dispose() {
-  
-
     super.dispose();
   }
 

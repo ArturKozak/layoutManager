@@ -156,10 +156,6 @@ class PaymentService {
   }
 
   void _getPastPurchases() async {
-    // remove this if you want to restore past purchases in iOS
-    if (Platform.isIOS) {
-      return;
-    }
     List<PurchasedItem>? purchasedItems =
         await FlutterInappPurchase.instance.getAvailablePurchases();
 

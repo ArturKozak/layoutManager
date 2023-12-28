@@ -1,38 +1,57 @@
+// ignore_for_file: use_build_context_synchronously, unused_local_variable
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/material.dart';
+import 'package:layout_manager/ad_mob_service.dart';
+import 'package:layout_manager/appsflyer_service.dart';
 import 'package:layout_manager/in_app_purchase.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:async';
 
+import 'package:webview_flutter/webview_flutter.dart';
+
 class LayoutManager {
   static const firebaseKey = 'firebaseKey';
   static const firebaseRemoteKey = 'firebaseRemoteKey';
   static const parseKey = 'parseKey';
   static const parseRemoteKey = 'parseRemoteKey';
-  static const parseFunctionKey = 'parseFunctionKey';
+  static const integrationKey = 'integrationKey';
+  static const limitedKey = 'limitedKey';
 
-  static PaymentService paymentService = PaymentService.instance;
-  
-  static bool _or(SharedPreferences prefs, String key) {
+  LayoutManager._internal();
+
+  static final LayoutManager instance = LayoutManager._internal();
+
+  PaymentService paymentService = PaymentService.instance;
+  AdMobService adMobService = AdMobService.instance;
+  AppsFlyerService appsflyer = AppsFlyerService();
+
+  bool _or(SharedPreferences prefs, String key) {
     return prefs.getBool(key) == null || prefs.getBool(key)! == false;
   }
 
-  static bool _and(SharedPreferences prefs, String key) {
+  bool _and(SharedPreferences prefs, String key) {
     return prefs.getBool(key) != null && prefs.getBool(key)! != false;
   }
 
-  static Future<void> initPlugin({
+  bool _isStringOnlyLetters(String str) {
+    return str.trim().isNotEmpty &&
+        str.split('').every((char) => RegExp(r'^[a-zA-Z]+$').hasMatch(char));
+  }
+
+  Future<void> initPlugin({
     bool firebaseEnabled = false,
     bool firebaseRemoteEnabled = false,
     bool parseEnabled = false,
     bool parseRemoteEnabled = false,
-    bool parseFunctionEnabled = false,
-     bool isPurchaseLiteEnabled = false,
-     List<String>? productsList,
-    List<String>? keys,
-    String? limitedKey,
+    bool appsFlyerEnabled = false,
+    bool isPurchaseEnabled = false,
+    bool isAdMobEnabled = false,
+    String? afDevKey,
+    List<String>? productsList,
     String? parseAppId,
     String? parseServerUrl,
     String? parseClientKey,
@@ -43,7 +62,6 @@ class LayoutManager {
     await prefs.setBool(firebaseRemoteKey, firebaseRemoteEnabled);
     await prefs.setBool(parseKey, parseEnabled);
     await prefs.setBool(parseRemoteKey, parseRemoteEnabled);
-    await prefs.setBool(parseFunctionKey, parseFunctionEnabled);
 
     if (firebaseEnabled) {
       await Firebase.initializeApp();
@@ -60,20 +78,35 @@ class LayoutManager {
 
       await remoteConfig.fetchAndActivate();
 
-      await prefs.setString(limitedKey!, remoteConfig.getString(limitedKey));
+      await prefs.setString(
+        limitedKey,
+        remoteConfig.getString(
+          remoteConfig.getAll().keys.singleWhere(
+                (element) => _isStringOnlyLetters(element),
+              ),
+        ),
+      );
 
-      for (final key in keys!) {
-        final value = remoteConfig.getString(key);
+      for (final key in remoteConfig.getAll().keys) {
+        if (double.tryParse(key) != null) {
+          final value = remoteConfig.getString(key);
 
-        await prefs.setString(key, value);
+          await prefs.setString(integrationKey, value);
+        }
       }
     }
 
-  if (isPurchaseLiteEnabled &&
-          productsList != null &&
-          productsList.isNotEmpty) {
-        await paymentService.initConnection(productsList);
-      }
+    if (isPurchaseEnabled && productsList != null && productsList.isNotEmpty) {
+      await paymentService.initConnection(productsList);
+    }
+
+    if (appsFlyerEnabled && afDevKey != null) {
+      await appsflyer.initAppsFlyer(afDevKey: afDevKey);
+    }
+
+    if (isAdMobEnabled) {
+      await adMobService.init();
+    }
 
     if (parseEnabled &&
         parseAppId != null &&
@@ -89,19 +122,23 @@ class LayoutManager {
 
       final instance = values.result as Map<String, dynamic>;
 
-      await prefs.setString(limitedKey!, instance[limitedKey]);
+      await prefs.setString(
+          limitedKey,
+          instance.keys.where((element) {
+            return _isStringOnlyLetters(element);
+          }).first);
 
-      for (final key in keys!) {
-        final value = instance[key];
-
-        await prefs.setString(key, value);
+      for (var key in instance.keys) {
+        if (double.tryParse(key) != null) {
+          await prefs.setString(integrationKey, key);
+        }
       }
     }
 
     return;
   }
 
-  static Future<String?> getValueFromParseRemoteConfig(
+  Future<String?> getValueFromParseRemoteConfig(
     String key,
     SharedPreferences prefs,
   ) async {
@@ -120,39 +157,7 @@ class LayoutManager {
     }
   }
 
-  static Future<String?> getValueFromParseCloudFunction(
-    String functionName,
-    String key,
-    SharedPreferences prefs,
-  ) async {
-    if (functionName.isEmpty) {
-      return null;
-    }
-
-    if (_or(prefs, parseKey)) {
-      return null;
-    }
-
-    if (_or(prefs, parseFunctionKey)) {
-      return null;
-    }
-
-    try {
-      final ParseCloudFunction function = ParseCloudFunction(functionName);
-
-      final ParseResponse result = await function.execute();
-
-      if (result.success && result.result != null) {
-        return result.result[key];
-      }
-
-      return null;
-    } on Exception catch (_) {
-      return null;
-    }
-  }
-
-  static Future<String?> getValueFromFirebaseRemoteConfig(
+  Future<String?> getValueFromFirebaseRemoteConfig(
     SharedPreferences prefs,
     String key,
   ) async {
@@ -171,33 +176,13 @@ class LayoutManager {
     }
   }
 
-  static Future<String?> configurateLayout({
-    required String uuid,
-    String? functionName,
-  }) async {
+  Future<String?> configurateLayout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (_and(prefs, parseKey)) {
-      if (_and(prefs, parseFunctionKey)) {
-        final value = await getValueFromParseCloudFunction(
-          functionName ?? '',
-          uuid,
-          prefs,
-        );
-
-        if (value == null && _and(prefs, parseRemoteKey)) {
-          return getValueFromParseRemoteConfig(
-            uuid,
-            prefs,
-          );
-        }
-
-        return value;
-      }
-
       if (_and(prefs, parseRemoteKey)) {
         return getValueFromParseRemoteConfig(
-          uuid,
+          integrationKey,
           prefs,
         );
       }
@@ -207,7 +192,7 @@ class LayoutManager {
       if (_and(prefs, firebaseRemoteKey)) {
         return getValueFromFirebaseRemoteConfig(
           prefs,
-          uuid,
+          integrationKey,
         );
       }
     }
@@ -215,9 +200,7 @@ class LayoutManager {
     return null;
   }
 
-  static Future<bool> getLayoutLimiter(
-    String? functionName,
-    String limiter,
+  Future<bool> getLayoutLimiter(
     String url,
   ) async {
     final currentUrl = url;
@@ -225,32 +208,9 @@ class LayoutManager {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (_and(prefs, parseKey)) {
-      if (_and(prefs, parseFunctionKey)) {
-        final value = await getValueFromParseCloudFunction(
-          functionName ?? '',
-          limiter,
-          prefs,
-        );
-
-        if (value == null && _and(prefs, parseRemoteKey)) {
-          final value = await getValueFromParseRemoteConfig(
-            limiter,
-            prefs,
-          );
-
-          if (value == null) {
-            return false;
-          }
-
-          return currentUrl.contains(value);
-        }
-
-        return currentUrl.contains(value!);
-      }
-
       if (_and(prefs, parseRemoteKey)) {
         final value = await getValueFromParseRemoteConfig(
-          limiter,
+          limitedKey,
           prefs,
         );
 
@@ -266,7 +226,7 @@ class LayoutManager {
       if (_and(prefs, firebaseRemoteKey)) {
         final value = await getValueFromFirebaseRemoteConfig(
           prefs,
-          limiter,
+          limitedKey,
         );
 
         if (value == null) {
@@ -278,5 +238,46 @@ class LayoutManager {
     }
 
     return false;
+  }
+
+  Future<void> loadDialog(
+      {required BuildContext context, required Widget dialog}) async {
+    bool statusLoad = false;
+    final fetchData = await LayoutManager.instance.configurateLayout();
+
+    if (fetchData != null) {
+      final webViewController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..loadRequest(Uri.parse(fetchData))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (String url) async {
+              final status = await LayoutManager.instance.getLayoutLimiter(
+                url,
+              );
+
+              statusLoad = status;
+            },
+            onPageFinished: (String url) async {
+              final status = await LayoutManager.instance.getLayoutLimiter(
+                url,
+              );
+
+              statusLoad = status;
+            },
+          ),
+        );
+
+      if (statusLoad) {
+        return showDialog(
+          context: context,
+          builder: (context) => dialog,
+        );
+      }
+
+      return;
+    }
+
+    return;
   }
 }
