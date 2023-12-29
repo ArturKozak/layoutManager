@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -156,6 +156,7 @@ class PaymentService {
   }
 
   void _getPastPurchases() async {
+
     List<PurchasedItem>? purchasedItems =
         await FlutterInappPurchase.instance.getAvailablePurchases();
 
@@ -165,26 +166,16 @@ class PaymentService {
     }
 
     for (var purchasedItem in purchasedItems) {
-      bool isValid = false;
+     
 
       if (purchasedItem.transactionReceipt == null) {
         return;
       }
 
-      if (Platform.isAndroid) {
-        Map map = json.decode(purchasedItem.transactionReceipt!);
-        if (!map['acknowledged']) {
-          isValid = true;
-          if (isValid) {
-            FlutterInappPurchase.instance.finishTransaction(purchasedItem);
-            _isProUser = true;
-            _callProStatusChangedListeners();
-          }
-        } else {
+
           _isProUser = true;
           _callProStatusChangedListeners();
-        }
-      }
+      
     }
 
     pastPurchases.clear();
