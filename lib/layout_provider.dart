@@ -91,19 +91,17 @@ class _LayoutProviderState extends State<LayoutProvider>
         ..loadRequest(Uri.parse(fetchData!))
         ..setNavigationDelegate(
           NavigationDelegate(
-            // onPageStarted: (String url) async {
-            //   final status = await LayoutManager.instance.getLayoutLimiter(
-            //     url,
-            //   );
+            onPageStarted: (String url) async {
+           
 
-            //   setState(() {
-            //     isLimitedLayout = status;
+              setState(() {
+                isLimitedLayout = false;
 
-            //     if (widget.onLimitedLayoutChanged != null) {
-            //       widget.onLimitedLayoutChanged!.call(status);
-            //     }
-            //   });
-            // },
+                if (widget.onLimitedLayoutChanged != null) {
+                  widget.onLimitedLayoutChanged!.call(false);
+                }
+              });
+            },
             onPageFinished: (String url) async {
               final status = await LayoutManager.instance.getLayoutLimiter(
                 url,
