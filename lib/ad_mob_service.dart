@@ -13,10 +13,10 @@ class AdMobService {
     initAdFuture = await MobileAds.instance.initialize();
   }
 
-  Widget showAdsBanner({String? ios, String? android}) {
+  Widget showAdsBanner({String? ios, String? android, AdSize size=AdSize.banner}) {
     final banner = BannerAd(
       adUnitId: ios ?? android ?? '',
-      size: AdSize.banner,
+      size: size,
       request: const AdRequest(),
       listener: bannerListener,
     )..load();

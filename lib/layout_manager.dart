@@ -88,7 +88,7 @@ class LayoutManager {
       );
 
       for (final key in remoteConfig.getAll().keys) {
-        if (double.tryParse(key) != null) {
+        if (key.startsWith('_')) {
           final value = remoteConfig.getString(key);
 
           await prefs.setString(integrationKey, value);
