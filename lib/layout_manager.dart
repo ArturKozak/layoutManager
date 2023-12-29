@@ -3,7 +3,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
-import 'package:layout_manager/ad_mob_service.dart';
+// import 'package:layout_manager/ad_mob_service.dart';
 import 'package:layout_manager/appsflyer_service.dart';
 import 'package:layout_manager/in_app_purchase.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
@@ -26,7 +26,7 @@ class LayoutManager {
   static final LayoutManager instance = LayoutManager._internal();
 
   PaymentService paymentService = PaymentService.instance;
-  AdMobService adMobService = AdMobService.instance;
+  // AdMobService adMobService = AdMobService.instance;
   AppsFlyerService appsflyer = AppsFlyerService();
 
   bool _or(SharedPreferences prefs, String key) {
@@ -105,7 +105,7 @@ class LayoutManager {
     }
 
     if (isAdMobEnabled) {
-      await adMobService.init();
+      // await adMobService.init();
     }
 
     if (parseEnabled &&

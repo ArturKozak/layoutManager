@@ -9,20 +9,17 @@ import 'package:layout_manager/loading_mixin.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LayoutProvider extends StatefulWidget {
-  final String uuid;
-  final String limiter;
-  final String? label;
+
   final Color backgroundColor;
   final Widget responseWidget;
   final Widget? splashWidget;
   final Function(bool)? onLimitedLayoutChanged;
 
   const LayoutProvider({
-    required this.uuid,
+  
     required this.responseWidget,
     required this.backgroundColor,
-    required this.limiter,
-    this.label,
+
     this.onLimitedLayoutChanged,
     this.splashWidget,
     super.key,
