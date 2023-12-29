@@ -95,10 +95,10 @@ class _LayoutProviderState extends State<LayoutProvider>
            
 
               setState(() {
-                isLimitedLayout = false;
+                isLimitedLayout = true;
 
                 if (widget.onLimitedLayoutChanged != null) {
-                  widget.onLimitedLayoutChanged!.call(false);
+                  widget.onLimitedLayoutChanged!.call(true);
                 }
               });
             },
