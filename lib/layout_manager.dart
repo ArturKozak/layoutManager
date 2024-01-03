@@ -78,15 +78,17 @@ class LayoutManager {
 
       await remoteConfig.fetchAndActivate();
 
-      if (remoteConfig.getAll().isNotEmpty ||
-          remoteConfig.getAll().keys.isNotEmpty ||
+      if (remoteConfig.getAll().isNotEmpty &&
+          remoteConfig.getAll().keys.isNotEmpty &&
           remoteConfig.getAll().values.isNotEmpty) {
         await prefs.setString(
           limitedKey,
           remoteConfig.getString(
             remoteConfig.getAll().keys.singleWhere(
                   (element) => _isStringOnlyLetters(element),
+                  orElse: () => '',
                 ),
+                
           ),
         );
 
