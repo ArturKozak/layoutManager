@@ -78,6 +78,9 @@ class LayoutManager {
 
       await remoteConfig.fetchAndActivate();
 
+if (remoteConfig.getAll().isNotEmpty) {
+  
+
       await prefs.setString(
         limitedKey,
         remoteConfig.getString(
@@ -94,7 +97,7 @@ class LayoutManager {
           await prefs.setString(integrationKey, value);
         }
       }
-    }
+    }}
 
     if (isPurchaseEnabled && productsList != null && productsList.isNotEmpty) {
       await paymentService.initConnection(productsList);
