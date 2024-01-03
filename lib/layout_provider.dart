@@ -9,17 +9,14 @@ import 'package:layout_manager/loading_mixin.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LayoutProvider extends StatefulWidget {
-
   final Color backgroundColor;
   final Widget responseWidget;
   final Widget? splashWidget;
   final Function(bool)? onLimitedLayoutChanged;
 
   const LayoutProvider({
-  
     required this.responseWidget,
     required this.backgroundColor,
-
     this.onLimitedLayoutChanged,
     this.splashWidget,
     super.key,
@@ -92,8 +89,6 @@ class _LayoutProviderState extends State<LayoutProvider>
         ..setNavigationDelegate(
           NavigationDelegate(
             onPageStarted: (String url) async {
-           
-
               setState(() {
                 isLimitedLayout = true;
 

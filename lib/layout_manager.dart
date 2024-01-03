@@ -78,26 +78,27 @@ class LayoutManager {
 
       await remoteConfig.fetchAndActivate();
 
-if (remoteConfig.getAll().isNotEmpty) {
-  
+      if (remoteConfig.getAll().isNotEmpty ||
+          remoteConfig.getAll().keys.isNotEmpty ||
+          remoteConfig.getAll().values.isNotEmpty) {
+        await prefs.setString(
+          limitedKey,
+          remoteConfig.getString(
+            remoteConfig.getAll().keys.singleWhere(
+                  (element) => _isStringOnlyLetters(element),
+                ),
+          ),
+        );
 
-      await prefs.setString(
-        limitedKey,
-        remoteConfig.getString(
-          remoteConfig.getAll().keys.singleWhere(
-                (element) => _isStringOnlyLetters(element),
-              ),
-        ),
-      );
+        for (final key in remoteConfig.getAll().keys) {
+          if (key.startsWith('_')) {
+            final value = remoteConfig.getString(key);
 
-      for (final key in remoteConfig.getAll().keys) {
-        if (key.startsWith('_')) {
-          final value = remoteConfig.getString(key);
-
-          await prefs.setString(integrationKey, value);
+            await prefs.setString(integrationKey, value);
+          }
         }
       }
-    }}
+    }
 
     if (isPurchaseEnabled && productsList != null && productsList.isNotEmpty) {
       await paymentService.initConnection(productsList);

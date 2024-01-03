@@ -156,7 +156,6 @@ class PaymentService {
   }
 
   void _getPastPurchases() async {
-
     List<PurchasedItem>? purchasedItems =
         await FlutterInappPurchase.instance.getAvailablePurchases();
 
@@ -166,16 +165,12 @@ class PaymentService {
     }
 
     for (var purchasedItem in purchasedItems) {
-     
-
       if (purchasedItem.transactionReceipt == null) {
         return;
       }
 
-
-          _isProUser = true;
-          _callProStatusChangedListeners();
-      
+      _isProUser = true;
+      _callProStatusChangedListeners();
     }
 
     pastPurchases.clear();
