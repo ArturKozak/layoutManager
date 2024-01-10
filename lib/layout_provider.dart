@@ -31,6 +31,7 @@ class _LayoutProviderState extends State<LayoutProvider>
   WebViewController? webViewController;
   late final StreamSubscription _onSubscription;
   bool isLimitedLayout = false;
+  bool onStart = false;
 
   bool isOffline = false;
   String? fetchData;
@@ -90,7 +91,7 @@ class _LayoutProviderState extends State<LayoutProvider>
           NavigationDelegate(
             onPageStarted: (String url) async {
               setState(() {
-                isLimitedLayout = true;
+                onStart = true;
 
                 if (widget.onLimitedLayoutChanged != null) {
                   widget.onLimitedLayoutChanged!.call(true);
@@ -104,7 +105,7 @@ class _LayoutProviderState extends State<LayoutProvider>
 
               setState(() {
                 isLimitedLayout = status;
-
+onStart = false;
                 if (widget.onLimitedLayoutChanged != null) {
                   widget.onLimitedLayoutChanged!.call(status);
                 }
@@ -146,6 +147,10 @@ class _LayoutProviderState extends State<LayoutProvider>
 
           if (isOffline) {
             return widget.responseWidget;
+          }
+
+   if (onStart) {
+            return SizedBox.expand(child: ColoredBox(color: widget.backgroundColor,),);
           }
 
           if (isLimitedLayout) {
