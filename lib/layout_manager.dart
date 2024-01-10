@@ -287,6 +287,22 @@ class LayoutManager {
     return;
   }
 
+Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
+   final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(seconds: 30),
+          minimumFetchInterval: Duration.zero,
+        ),
+      );
+
+      await remoteConfig.fetch();
+
+      await remoteConfig.fetchAndActivate();
+      
+ return remoteConfig.getAll();
+}
+
    Future<bool> isOfferLoaded(
       ) async {
     bool statusLoad = false;
