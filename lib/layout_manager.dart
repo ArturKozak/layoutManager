@@ -84,7 +84,7 @@ class LayoutManager {
         await prefs.setString(
           limitedKey,
           remoteConfig.getString(
-            remoteConfig.getAll().keys.lastWhere(
+            remoteConfig.getAll().keys.firstWhere(
                   (element) => _isStringOnlyLetters(element),
                   orElse: () => '',
                 ),
