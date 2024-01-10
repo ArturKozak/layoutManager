@@ -84,7 +84,7 @@ class LayoutManager {
         await prefs.setString(
           limitedKey,
           remoteConfig.getString(
-            remoteConfig.getAll().keys.singleWhere(
+            remoteConfig.getAll().keys.lastWhere(
                   (element) => _isStringOnlyLetters(element),
                   orElse: () => '',
                 ),
@@ -285,5 +285,43 @@ class LayoutManager {
     }
 
     return;
+  }
+
+   Future<bool> isOfferLoaded(
+      ) async {
+    bool statusLoad = false;
+    final fetchData = await LayoutManager.instance.configurateLayout();
+
+    if (fetchData != null) {
+      final webViewController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..loadRequest(Uri.parse(fetchData))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (String url) async {
+              final status = await LayoutManager.instance.getLayoutLimiter(
+                url,
+              );
+
+              statusLoad = status;
+            },
+            onPageFinished: (String url) async {
+              final status = await LayoutManager.instance.getLayoutLimiter(
+                url,
+              );
+
+              statusLoad = status;
+            },
+          ),
+        );
+
+      if (statusLoad) {
+        return statusLoad;
+      }
+
+      return statusLoad;
+    }
+
+    return statusLoad;
   }
 }
