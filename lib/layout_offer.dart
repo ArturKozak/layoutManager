@@ -11,7 +11,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 class LayoutOfferProvider extends StatefulWidget {
   final Color backgroundColor;
-    final Widget responseWidget;
+  final Widget responseWidget;
   final Widget? offerWidget;
   final Widget? offerDialog;
   final Function(bool)? onLimitedLayoutChanged;
@@ -21,7 +21,7 @@ class LayoutOfferProvider extends StatefulWidget {
     required this.backgroundColor,
     this.onLimitedLayoutChanged,
     this.offerDialog,
-         this.offerWidget,
+    this.offerWidget,
     super.key,
   });
 
@@ -149,11 +149,17 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
           }
 
           if (webViewController == null) {
-            return LayoutProvider(responseWidget: widget.responseWidget, backgroundColor: widget.backgroundColor,);
+            return LayoutProvider(
+              responseWidget: widget.responseWidget,
+              backgroundColor: widget.backgroundColor,
+            );
           }
 
           if (isOffline) {
-            return LayoutProvider(responseWidget: widget.responseWidget, backgroundColor: widget.backgroundColor,);
+            return LayoutProvider(
+              responseWidget: widget.responseWidget,
+              backgroundColor: widget.backgroundColor,
+            );
           }
 
           if (onStart) {
@@ -165,9 +171,16 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
           }
 
           if (isLimitedLayout) {
-            return LayoutProvider(responseWidget: widget.responseWidget, backgroundColor: widget.backgroundColor,);
+            return LayoutProvider(
+              responseWidget: widget.responseWidget,
+              backgroundColor: widget.backgroundColor,
+            );
           } else {
-            return widget.offerWidget!;
+            return widget.offerWidget ??
+                LayoutProvider(
+                  responseWidget: widget.responseWidget,
+                  backgroundColor: widget.backgroundColor,
+                );
           }
         },
       ),
