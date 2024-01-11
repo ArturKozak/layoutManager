@@ -88,7 +88,6 @@ class LayoutManager {
                   (element) => _isStringOnlyLetters(element),
                   orElse: () => '',
                 ),
-                
           ),
         );
 
@@ -287,24 +286,23 @@ class LayoutManager {
     return;
   }
 
-Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
-   final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setConfigSettings(
-        RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: Duration.zero,
-        ),
-      );
+  Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    await remoteConfig.setConfigSettings(
+      RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 30),
+        minimumFetchInterval: Duration.zero,
+      ),
+    );
 
-      await remoteConfig.fetch();
+    await remoteConfig.fetch();
 
-      await remoteConfig.fetchAndActivate();
-      
- return remoteConfig.getAll();
-}
+    await remoteConfig.fetchAndActivate();
 
-   Future<bool> isOfferLoaded(
-      ) async {
+    return remoteConfig.getAll();
+  }
+
+  Future<bool> isOfferLoaded() async {
     bool statusLoad = false;
     final fetchData = await LayoutManager.instance.configurateLayout();
 
@@ -314,13 +312,13 @@ Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
         ..loadRequest(Uri.parse(fetchData))
         ..setNavigationDelegate(
           NavigationDelegate(
-            onPageStarted: (String url) async {
-              final status = await LayoutManager.instance.getLayoutLimiter(
-                url,
-              );
+            // onPageStarted: (String url) async {
+            //   final status = await LayoutManager.instance.getLayoutLimiter(
+            //     url,
+            //   );
 
-              statusLoad = status;
-            },
+            //   statusLoad = status;
+            // },
             onPageFinished: (String url) async {
               final status = await LayoutManager.instance.getLayoutLimiter(
                 url,
@@ -331,7 +329,7 @@ Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
           ),
         );
 
-      return statusLoad;
+      // return statusLoad;
     }
 
     return statusLoad;

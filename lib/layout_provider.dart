@@ -105,7 +105,7 @@ class _LayoutProviderState extends State<LayoutProvider>
 
               setState(() {
                 isLimitedLayout = status;
-onStart = false;
+                onStart = false;
                 if (widget.onLimitedLayoutChanged != null) {
                   widget.onLimitedLayoutChanged!.call(status);
                 }
@@ -149,8 +149,12 @@ onStart = false;
             return widget.responseWidget;
           }
 
-   if (onStart) {
-            return SizedBox.expand(child: ColoredBox(color: widget.backgroundColor,),);
+          if (onStart) {
+            return SizedBox.expand(
+              child: ColoredBox(
+                color: widget.backgroundColor,
+              ),
+            );
           }
 
           if (isLimitedLayout) {
