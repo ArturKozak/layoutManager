@@ -331,10 +331,6 @@ Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
           ),
         );
 
-      if (statusLoad) {
-        return statusLoad;
-      }
-
       return statusLoad;
     }
 
