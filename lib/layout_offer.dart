@@ -14,6 +14,7 @@ class LayoutOfferProvider extends StatefulWidget {
   final Widget responseWidget;
   final Widget? offerWidget;
   final Widget? offerDialog;
+  final bool isRedirect;
   final Function(bool)? onLimitedLayoutChanged;
 
   const LayoutOfferProvider({
@@ -22,6 +23,7 @@ class LayoutOfferProvider extends StatefulWidget {
     this.onLimitedLayoutChanged,
     this.offerDialog,
     this.offerWidget,
+    this.isRedirect = false,
     super.key,
   });
 
@@ -176,8 +178,13 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
               backgroundColor: widget.backgroundColor,
             );
           } else {
-            return widget.offerWidget ??
+            return 
+            !widget.isRedirect ?
+            widget.offerWidget ??
                 LayoutProvider(
+                  responseWidget: widget.responseWidget,
+                  backgroundColor: widget.backgroundColor,
+                ):  LayoutProvider(
                   responseWidget: widget.responseWidget,
                   backgroundColor: widget.backgroundColor,
                 );
