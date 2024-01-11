@@ -165,7 +165,7 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
           }
 
           if (onStart) {
-            return SizedBox.expand(
+            return widget.offerWidget ?? SizedBox.expand(
               child: ColoredBox(
                 color: widget.backgroundColor,
               ),
