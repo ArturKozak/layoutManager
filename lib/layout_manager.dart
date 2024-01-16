@@ -2,6 +2,7 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/material.dart';
 // import 'package:layout_manager/ad_mob_service.dart';
 import 'package:layout_manager/appsflyer_service.dart';
 import 'package:layout_manager/in_app_purchase.dart';
@@ -9,6 +10,8 @@ import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:async';
+
+import 'package:webview_flutter/webview_flutter.dart';
 
 class LayoutManager {
   static const firebaseKey = 'firebaseKey';
@@ -242,46 +245,42 @@ class LayoutManager {
     return false;
   }
 
-  // Future<void> loadDialog(
-  //     {required BuildContext context, required Widget dialog}) async {
-  //   bool statusLoad = false;
-  //   final fetchData = await LayoutManager.instance.configurateLayout();
+  Future<void> loadDialog(
+      {required BuildContext context, required Widget dialog}) async {
+    bool statusLoad = false;
+    final fetchData = await LayoutManager.instance.configurateLayout();
 
-  //   if (fetchData != null) {
-  //     final webViewController = WebViewController()
-  //       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-  //       ..loadRequest(Uri.parse(fetchData))
-  //       ..setNavigationDelegate(
-  //         NavigationDelegate(
-  //           onPageStarted: (String url) async {
-  //             final status = await LayoutManager.instance.getLayoutLimiter(
-  //               url,
-  //             );
+    if (fetchData != null) {
+      final webViewController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..loadRequest(Uri.parse(fetchData))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (_) => Future.delayed(
+              const Duration(seconds: 2),
+            ),
+            onPageFinished: (String url) async {
+              final status = await LayoutManager.instance.getLayoutLimiter(
+                url,
+              );
 
-  //             statusLoad = status;
-  //           },
-  //           onPageFinished: (String url) async {
-  //             final status = await LayoutManager.instance.getLayoutLimiter(
-  //               url,
-  //             );
+              statusLoad = status;
+            },
+          ),
+        );
 
-  //             statusLoad = status;
-  //           },
-  //         ),
-  //       );
+      if (statusLoad) {
+        return showDialog(
+          context: context,
+          builder: (context) => dialog,
+        );
+      }
 
-  //     if (statusLoad) {
-  //       return showDialog(
-  //         context: context,
-  //         builder: (context) => dialog,
-  //       );
-  //     }
+      return;
+    }
 
-  //     return;
-  //   }
-
-  //   return;
-  // }
+    return;
+  }
 
   Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
     final remoteConfig = FirebaseRemoteConfig.instance;

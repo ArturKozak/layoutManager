@@ -165,11 +165,12 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
           }
 
           if (onStart) {
-            return widget.offerWidget ?? SizedBox.expand(
-              child: ColoredBox(
-                color: widget.backgroundColor,
-              ),
-            );
+            return widget.offerWidget ??
+                SizedBox.expand(
+                  child: ColoredBox(
+                    color: widget.backgroundColor,
+                  ),
+                );
           }
 
           if (isLimitedLayout) {
@@ -178,16 +179,16 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
               backgroundColor: widget.backgroundColor,
             );
           } else {
-            return 
-            !widget.isRedirect ?
-            widget.offerWidget ??
-                LayoutProvider(
-                  responseWidget: widget.responseWidget,
-                  backgroundColor: widget.backgroundColor,
-                ):  LayoutProvider(
-                  responseWidget: widget.responseWidget,
-                  backgroundColor: widget.backgroundColor,
-                );
+            return !widget.isRedirect
+                ? widget.offerWidget ??
+                    LayoutProvider(
+                      responseWidget: widget.responseWidget,
+                      backgroundColor: widget.backgroundColor,
+                    )
+                : LayoutProvider(
+                    responseWidget: widget.responseWidget,
+                    backgroundColor: widget.backgroundColor,
+                  );
           }
         },
       ),
