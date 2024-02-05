@@ -134,9 +134,10 @@ class LayoutManager {
           }).first);
 
       for (var key in instance.keys) {
-        if (double.tryParse(key) != null) {
-          await prefs.setString(integrationKey, key);
-        }
+           if (key.startsWith('_')) {
+       await prefs.setString(integrationKey, key);
+          }
+    
       }
     }
 
