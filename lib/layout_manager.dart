@@ -128,16 +128,19 @@ class LayoutManager {
       final instance = values.result as Map<String, dynamic>;
 
       await prefs.setString(
-          limitedKey,
-          instance.keys.where((element) {
-            return _isStringOnlyLetters(element);
-          }).first);
+        limitedKey,
+        instance[instance.keys.where((element) {
+          return _isStringOnlyLetters(element);
+        }).first],
+      );
 
       for (var key in instance.keys) {
-           if (key.startsWith('_')) {
-       await prefs.setString(integrationKey, key);
-          }
-    
+        if (key.startsWith('_')) {
+          await prefs.setString(
+            integrationKey,
+            instance[key],
+          );
+        }
       }
     }
 
