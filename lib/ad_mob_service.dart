@@ -1,36 +1,70 @@
-// import 'package:flutter/material.dart';
-// import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-// class AdMobService {
-//   //
-//   AdMobService._internal();
+class NotificationHelper {
+  NotificationHelper._internal();
 
-//   static final AdMobService instance = AdMobService._internal();
+  static final NotificationHelper instance = NotificationHelper._internal();
 
-//   late InitializationStatus initAdFuture;
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
-//   Future<void> init() async {
-//     initAdFuture = await MobileAds.instance.initialize();
-//   }
+  /// Initialize notification
+  Future<void> initializeNotification() async {
+    const DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings();
 
-//   Widget showAdsBanner({String? ios, String? android, AdSize size=AdSize.banner}) {
-//     final banner = BannerAd(
-//       adUnitId: ios ?? android ?? '',
-//       size: size,
-//       request: const AdRequest(),
-//       listener: bannerListener,
-//     )..load();
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
-//     return AdWidget(ad: banner);
-//   }
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      iOS: initializationSettingsIOS,
+      android: initializationSettingsAndroid,
+    );
 
-//   final BannerAdListener bannerListener = BannerAdListener(
-//     onAdLoaded: (Ad ad) => print('Ad loaded.'),
-//     onAdFailedToLoad: (Ad ad, LoadAdError error) {
-//       ad.dispose();
-//       print('Ad failed to load: $error');
-//     },
-//     onAdOpened: (Ad ad) => print('Ad opened.'),
-//     onAdClosed: (Ad ad) => print('Ad closed.'),
-//   );
-// }
+    flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestPermission();
+
+    flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  /// Scheduled Notification
+  Future<void> scheduledNotification(
+      {required String notificationTitle,
+      required String notificationBody,
+      required RepeatInterval interval}) async {
+    const androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'your channel id ',
+      'your channel name',
+      channelDescription: 'your channel description',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ));
+
+    await flutterLocalNotificationsPlugin.periodicallyShow(0, notificationTitle,
+        notificationBody, interval, platformChannelSpecifics,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
+  }
+
+  Future<void> cancelAll() async =>
+      await flutterLocalNotificationsPlugin.cancelAll();
+}

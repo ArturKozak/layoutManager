@@ -19,7 +19,7 @@ dependencies:
   webview_flutter: ^4.2.3
   flutter_inapp_purchase: ^5.4.2
   appsflyer_sdk: ^6.12.2
-  # google_mobile_ads: ^4.0.0
+  flutter_local_notifications: ^14.1.0
 
 dev_dependencies:
   flutter_test:
