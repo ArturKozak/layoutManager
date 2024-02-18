@@ -13,7 +13,7 @@ class LayoutOfferProvider extends StatefulWidget {
   final Color backgroundColor;
   final Widget responseWidget;
   final Widget? offerWidget;
-  final Widget? offerDialog;
+
   final bool isRedirect;
   final Function(bool)? onLimitedLayoutChanged;
 
@@ -21,7 +21,6 @@ class LayoutOfferProvider extends StatefulWidget {
     required this.responseWidget,
     required this.backgroundColor,
     this.onLimitedLayoutChanged,
-    this.offerDialog,
     this.offerWidget,
     this.isRedirect = false,
     super.key,
@@ -146,6 +145,15 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
             return SizedBox.expand(
               child: ColoredBox(
                 color: widget.backgroundColor,
+                child: Center(
+                  child: SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: CircularProgressIndicator(
+                      color: widget.backgroundColor,
+                    ),
+                  ),
+                ),
               ),
             );
           }
@@ -169,6 +177,15 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
                 SizedBox.expand(
                   child: ColoredBox(
                     color: widget.backgroundColor,
+                    child: Center(
+                      child: SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: CircularProgressIndicator(
+                          color: widget.backgroundColor,
+                        ),
+                      ),
+                    ),
                   ),
                 );
           }

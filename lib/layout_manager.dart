@@ -2,18 +2,14 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:layout_manager/ad_mob_service.dart';
-
+import 'package:layout_manager/notification_service.dart';
 import 'package:layout_manager/appsflyer_service.dart';
 import 'package:layout_manager/in_app_purchase.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'dart:async';
-
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LayoutManager {
@@ -36,6 +32,30 @@ class LayoutManager {
   NotificationHelper notificationHelper = NotificationHelper.instance;
   AppsFlyerService appsflyer = AppsFlyerService();
 
+  Future<String?> _getByKey(String key) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (_and(prefs, parseKey)) {
+      if (_and(prefs, parseRemoteKey)) {
+        return getValueFromParseRemoteConfig(
+          key,
+          prefs,
+        );
+      }
+    }
+
+    if (_and(prefs, firebaseKey)) {
+      if (_and(prefs, firebaseRemoteKey)) {
+        return getValueFromFirebaseRemoteConfig(
+          prefs,
+          key,
+        );
+      }
+    }
+
+    return null;
+  }
+
   bool _or(SharedPreferences prefs, String key) {
     return prefs.getBool(key) == null || prefs.getBool(key)! == false;
   }
@@ -49,26 +69,111 @@ class LayoutManager {
         str.split('').every((char) => RegExp(r'^[a-zA-Z]+$').hasMatch(char));
   }
 
-  Future<void> initPlugin({
-    bool firebaseEnabled = false,
-    bool firebaseRemoteEnabled = false,
-    bool parseEnabled = false,
-    bool parseRemoteEnabled = false,
-    bool appsFlyerEnabled = false,
-    bool isPurchaseEnabled = false,
-    String? afDevKey,
-    List<String>? productsList,
-    String? parseAppId,
-    String? parseServerUrl,
-    String? parseClientKey,
-  }) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+  Future<void> _initLocalNotificationIfNeeeded() async {
+    final notificationEnabled = await _getByKey(notificationEnabledKey);
+    final notificationTitle = await _getByKey(notificationTitleKey);
+    final notificationBody = await _getByKey(notificationBodyKey);
+    final notificationIntervalRaw = await _getByKey(notificationIntervalKey);
 
-    await prefs.setBool(firebaseKey, firebaseEnabled);
-    await prefs.setBool(firebaseRemoteKey, firebaseRemoteEnabled);
-    await prefs.setBool(parseKey, parseEnabled);
-    await prefs.setBool(parseRemoteKey, parseRemoteEnabled);
+    RepeatInterval notificationInterval = RepeatInterval.daily;
 
+    switch (notificationIntervalRaw) {
+      case 'minute':
+        notificationInterval = RepeatInterval.everyMinute;
+
+        break;
+      case 'day':
+        notificationInterval = RepeatInterval.daily;
+
+        break;
+      case 'week':
+        notificationInterval = RepeatInterval.weekly;
+
+        break;
+    }
+
+    if (notificationEnabled != null && notificationEnabled == 'true') {
+      await notificationHelper.initializeNotification();
+
+      if (notificationTitle != null &&
+          notificationTitle.isNotEmpty &&
+          notificationBody != null &&
+          notificationBody.isNotEmpty &&
+          notificationIntervalRaw != null &&
+          notificationIntervalRaw.isNotEmpty) {
+        await notificationHelper.scheduledNotification(
+            notificationTitle: notificationTitle,
+            notificationBody: notificationBody,
+            interval: notificationInterval);
+      }
+    }
+  }
+
+  Future<void> _getDataFromParse(
+      bool parseEnabled,
+      String? parseAppId,
+      String? parseServerUrl,
+      String? parseClientKey,
+      SharedPreferences prefs) async {
+    if (parseEnabled &&
+        parseAppId != null &&
+        parseServerUrl != null &&
+        parseClientKey != null) {
+      await Parse().initialize(
+        parseAppId,
+        parseServerUrl,
+        clientKey: parseClientKey,
+      );
+
+      final values = await ParseConfig().getConfigs();
+
+      final instance = values.result as Map<String, dynamic>;
+
+      await prefs.setString(
+        limitedKey,
+        instance[instance.keys.where((element) {
+          return _isStringOnlyLetters(element) &&
+              !element.contains('notification');
+        }).first],
+      );
+
+      for (var key in instance.keys) {
+        if (key.startsWith('_')) {
+          await prefs.setString(
+            integrationKey,
+            instance[key],
+          );
+        }
+
+        if (key.contains('notificationTitle')) {
+          final value = instance[key];
+
+          await prefs.setString(notificationTitleKey, value);
+        }
+
+        if (key.contains('notificationBody')) {
+          final value = instance[key];
+
+          await prefs.setString(notificationBodyKey, value);
+        }
+
+        if (key.contains('notificationInterval')) {
+          final value = instance[key];
+
+          await prefs.setString(notificationIntervalKey, value);
+        }
+
+        if (key.contains('notificationEnabled')) {
+          final value = instance[key];
+
+          await prefs.setString(notificationEnabledKey, value);
+        }
+      }
+    }
+  }
+
+  Future<void> _getDataFromFB(
+      bool firebaseEnabled, SharedPreferences prefs) async {
     if (firebaseEnabled) {
       await Firebase.initializeApp();
 
@@ -132,6 +237,40 @@ class LayoutManager {
         }
       }
     }
+  }
+
+  Future<void> initPlugin({
+    bool firebaseEnabled = false,
+    bool firebaseRemoteEnabled = false,
+    bool parseEnabled = false,
+    bool parseRemoteEnabled = false,
+    bool appsFlyerEnabled = false,
+    bool isPurchaseEnabled = false,
+    String? afDevKey,
+    List<String>? productsList,
+    String? parseAppId,
+    String? parseServerUrl,
+    String? parseClientKey,
+  }) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    await prefs.setBool(firebaseKey, firebaseEnabled);
+    await prefs.setBool(firebaseRemoteKey, firebaseRemoteEnabled);
+    await prefs.setBool(parseKey, parseEnabled);
+    await prefs.setBool(parseRemoteKey, parseRemoteEnabled);
+
+    await _getDataFromFB(
+      firebaseEnabled,
+      prefs,
+    );
+
+    await _getDataFromParse(
+      parseEnabled,
+      parseAppId,
+      parseServerUrl,
+      parseClientKey,
+      prefs,
+    );
 
     if (isPurchaseEnabled && productsList != null && productsList.isNotEmpty) {
       await paymentService.initConnection(productsList);
@@ -141,99 +280,7 @@ class LayoutManager {
       await appsflyer.initAppsFlyer(afDevKey: afDevKey);
     }
 
-    if (parseEnabled &&
-        parseAppId != null &&
-        parseServerUrl != null &&
-        parseClientKey != null) {
-      await Parse().initialize(
-        parseAppId,
-        parseServerUrl,
-        clientKey: parseClientKey,
-      );
-
-      final values = await ParseConfig().getConfigs();
-
-      final instance = values.result as Map<String, dynamic>;
-
-      await prefs.setString(
-        limitedKey,
-        instance[instance.keys.where((element) {
-          return _isStringOnlyLetters(element) &&
-              !element.contains('notification');
-        }).first],
-      );
-
-      for (var key in instance.keys) {
-        if (key.startsWith('_')) {
-          await prefs.setString(
-            integrationKey,
-            instance[key],
-          );
-        }
-
-        if (key.contains('notificationTitle')) {
-          final value = instance[key];
-
-          await prefs.setString(notificationTitleKey, value);
-        }
-
-        if (key.contains('notificationBody')) {
-          final value = instance[key];
-
-          await prefs.setString(notificationBodyKey, value);
-        }
-
-        if (key.contains('notificationInterval')) {
-          final value = instance[key];
-
-          await prefs.setString(notificationIntervalKey, value);
-        }
-
-        if (key.contains('notificationEnabled')) {
-          final value = instance[key];
-
-          await prefs.setString(notificationEnabledKey, value);
-        }
-      }
-    }
-
-    final notificationEnabled = await _getByKey(notificationEnabledKey);
-    final notificationTitle = await _getByKey(notificationTitleKey);
-    final notificationBody = await _getByKey(notificationBodyKey);
-    final notificationIntervalRaw = await _getByKey(notificationIntervalKey);
-
-    RepeatInterval notificationInterval = RepeatInterval.daily;
-
-    switch (notificationIntervalRaw) {
-      case 'minute':
-        notificationInterval = RepeatInterval.everyMinute;
-
-        break;
-      case 'day':
-        notificationInterval = RepeatInterval.daily;
-
-        break;
-      case 'week':
-        notificationInterval = RepeatInterval.weekly;
-
-        break;
-    }
-
-    if (notificationEnabled != null && notificationEnabled == 'true') {
-      await notificationHelper.initializeNotification();
-
-      if (notificationTitle != null &&
-          notificationTitle.isNotEmpty &&
-          notificationBody != null &&
-          notificationBody.isNotEmpty &&
-          notificationIntervalRaw != null &&
-          notificationIntervalRaw.isNotEmpty) {
-        await notificationHelper.scheduledNotification(
-            notificationTitle: notificationTitle,
-            notificationBody: notificationBody,
-            interval: notificationInterval);
-      }
-    }
+    await _initLocalNotificationIfNeeeded();
 
     return;
   }
@@ -274,30 +321,6 @@ class LayoutManager {
     } on Exception catch (_) {
       return null;
     }
-  }
-
-  Future<String?> _getByKey(String key) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    if (_and(prefs, parseKey)) {
-      if (_and(prefs, parseRemoteKey)) {
-        return getValueFromParseRemoteConfig(
-          key,
-          prefs,
-        );
-      }
-    }
-
-    if (_and(prefs, firebaseKey)) {
-      if (_and(prefs, firebaseRemoteKey)) {
-        return getValueFromFirebaseRemoteConfig(
-          prefs,
-          key,
-        );
-      }
-    }
-
-    return null;
   }
 
   Future<String?> configurateLayout() async {

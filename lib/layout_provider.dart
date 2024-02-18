@@ -138,7 +138,21 @@ class _LayoutProviderState extends State<LayoutProvider>
       body: LayoutBuilder(
         builder: (context, snapshot) {
           if (loading) {
-            return widget.splashWidget ?? const SizedBox();
+            return widget.splashWidget ??
+                SizedBox.expand(
+                  child: ColoredBox(
+                    color: widget.backgroundColor,
+                    child: Center(
+                      child: SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: CircularProgressIndicator(
+                          color: widget.backgroundColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
           }
 
           if (webViewController == null) {
@@ -153,6 +167,15 @@ class _LayoutProviderState extends State<LayoutProvider>
             return SizedBox.expand(
               child: ColoredBox(
                 color: widget.backgroundColor,
+                child: Center(
+                  child: SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: CircularProgressIndicator(
+                      color: widget.backgroundColor,
+                    ),
+                  ),
+                ),
               ),
             );
           }
