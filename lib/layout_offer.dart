@@ -145,12 +145,12 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
             return SizedBox.expand(
               child: ColoredBox(
                 color: widget.backgroundColor,
-                child: Center(
+                child: const Center(
                   child: SizedBox(
                     height: 40,
                     width: 40,
                     child: CircularProgressIndicator(
-                      color: widget.backgroundColor,
+                      
                     ),
                   ),
                 ),
