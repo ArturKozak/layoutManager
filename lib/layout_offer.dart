@@ -97,9 +97,6 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
               setState(() {
                 onStart = true;
 
-                if (widget.onLimitedLayoutChanged != null) {
-                  widget.onLimitedLayoutChanged!.call(false);
-                }
               });
             },
             onPageFinished: (String url) async {
@@ -177,12 +174,12 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
                 SizedBox.expand(
                   child: ColoredBox(
                     color: widget.backgroundColor,
-                    child: Center(
+                    child: const Center(
                       child: SizedBox(
                         height: 40,
                         width: 40,
                         child: CircularProgressIndicator(
-                          color: widget.backgroundColor,
+                        
                         ),
                       ),
                     ),
