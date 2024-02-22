@@ -411,7 +411,7 @@ class LayoutManager {
           ),
         );
 
-      if (statusLoad) {
+      if (!statusLoad) {
         return showDialog(
           context: context,
           builder: (context) => dialog,
