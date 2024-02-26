@@ -96,7 +96,6 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
             onPageStarted: (String url) async {
               setState(() {
                 onStart = true;
-
               });
             },
             onPageFinished: (String url) async {
@@ -146,9 +145,7 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
                   child: SizedBox(
                     height: 40,
                     width: 40,
-                    child: CircularProgressIndicator(
-                      
-                    ),
+                    child: CircularProgressIndicator(),
                   ),
                 ),
               ),
@@ -178,9 +175,7 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
                       child: SizedBox(
                         height: 40,
                         width: 40,
-                        child: CircularProgressIndicator(
-                        
-                        ),
+                        child: CircularProgressIndicator(),
                       ),
                     ),
                   ),

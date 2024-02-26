@@ -92,7 +92,6 @@ class _LayoutProviderState extends State<LayoutProvider>
             onPageStarted: (String url) async {
               setState(() {
                 onStart = true;
-
               });
             },
             onPageFinished: (String url) async {
@@ -100,8 +99,14 @@ class _LayoutProviderState extends State<LayoutProvider>
                 url,
               );
 
-              setState(() {
+              setState(() async {
                 isLimitedLayout = status;
+                if (!LayoutManager.instance.appsflyer.isActive() &&
+                    !isLimitedLayout) {
+                  await LayoutManager.instance.appsflyer
+                      .appsFlyerEvent(eventName: 'offerLinkIsActive');
+                }
+
                 onStart = false;
                 if (widget.onLimitedLayoutChanged != null) {
                   widget.onLimitedLayoutChanged!.call(status);
@@ -143,9 +148,7 @@ class _LayoutProviderState extends State<LayoutProvider>
                       child: SizedBox(
                         height: 40,
                         width: 40,
-                        child: CircularProgressIndicator(
-                       
-                        ),
+                        child: CircularProgressIndicator(),
                       ),
                     ),
                   ),
@@ -168,9 +171,7 @@ class _LayoutProviderState extends State<LayoutProvider>
                   child: SizedBox(
                     height: 40,
                     width: 40,
-                    child: CircularProgressIndicator(
-                
-                    ),
+                    child: CircularProgressIndicator(),
                   ),
                 ),
               ),

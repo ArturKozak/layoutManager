@@ -30,7 +30,7 @@ class LayoutManager {
 
   PaymentService paymentService = PaymentService.instance;
   NotificationHelper notificationHelper = NotificationHelper.instance;
-  AppsFlyerService appsflyer = AppsFlyerService();
+  AppsFlyerService appsflyer = AppsFlyerService.instance;
 
   Future<String?> _getByKey(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -412,6 +412,9 @@ class LayoutManager {
         );
 
       if (!statusLoad) {
+        if (!appsflyer.isActive()) {
+          await appsflyer.appsFlyerEvent(eventName: 'offerDialogOpenned');
+        }
         return showDialog(
           context: context,
           builder: (context) => dialog,

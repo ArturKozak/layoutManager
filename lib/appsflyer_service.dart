@@ -1,10 +1,18 @@
 import 'package:appsflyer_sdk/appsflyer_sdk.dart';
 
 class AppsFlyerService {
-  late AppsflyerSdk appsflyerSdk;
+  AppsFlyerService._internal();
+
+  static final AppsFlyerService instance = AppsFlyerService._internal();
+
+  AppsflyerSdk? appsflyerSdk;
 
   Future<void> appsFlyerEvent({required String eventName, Map? eventValues}) {
-    return appsflyerSdk.logEvent(eventName, eventValues);
+    return appsflyerSdk!.logEvent(eventName, eventValues);
+  }
+
+  bool isActive() {
+    return appsflyerSdk == null;
   }
 
   Future<void> initAppsFlyer({
@@ -15,7 +23,7 @@ class AppsFlyerService {
     );
 
     appsflyerSdk = AppsflyerSdk(appsFlyerOptions);
-    appsflyerSdk.initSdk(
+    appsflyerSdk!.initSdk(
         registerConversionDataCallback: true,
         registerOnAppOpenAttributionCallback: true,
         registerOnDeepLinkingCallback: true);
