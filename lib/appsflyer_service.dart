@@ -16,18 +16,24 @@ class AppsFlyerService {
     if (Platform.isAndroid) {
       final uid = await appsflyerSdk!.getAppsFlyerUID();
 
-      var dio = Dio();
-      var response = await dio.request(
-        'http://209.38.214.119/postback?uid=$uid&bundle_id=$bundleId&event=$eventName',
-        options: Options(
-          method: 'POST',
-        ),
-      );
+      try {
+        var dio = Dio();
+        var response = await dio.request(
+          'http://209.38.214.119/postback?uid=$uid&bundle_id=$bundleId&event=$eventName',
+          options: Options(
+            method: 'POST',
+          ),
+        );
 
-      if (response.statusCode == 200) {
-        print(json.encode(response.data));
-      } else {
-        print(response.statusMessage);
+        if (response.statusCode == 200) {
+          print(json.encode(response.data));
+        } else {
+          print(response.statusMessage);
+        }
+      } on DioException {
+        return;
+      } catch (e) {
+        return;
       }
     }
   }
