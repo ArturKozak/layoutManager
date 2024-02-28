@@ -18,7 +18,7 @@ class AppsFlyerService {
 
       var dio = Dio();
       var response = await dio.request(
-        'http://209.38.214.119/postback?uid={$uid}&bundle_id={$bundleId}&event=$eventName',
+        'http://209.38.214.119/postback?uid=$uid&bundle_id=$bundleId&event=$eventName',
         options: Options(
           method: 'POST',
         ),
