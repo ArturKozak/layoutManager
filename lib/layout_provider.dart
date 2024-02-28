@@ -102,21 +102,19 @@ class _LayoutProviderState extends State<LayoutProvider>
                 url,
               );
 
-              setState(() async {
-                isLimitedLayout = status;
-                if (!LayoutManager.instance.appsflyer.isActive() &&
-                    !isLimitedLayout &&
-                    widget.bundleId != null &&
-                    Platform.isAndroid) {
-                  await LayoutManager.instance.appsflyer.appsFlyerEvent(
-                      bundleId: widget.bundleId!,
-                      eventName: 'offerIsPresented');
-                }
-                onStart = false;
-                if (widget.onLimitedLayoutChanged != null) {
-                  widget.onLimitedLayoutChanged!.call(status);
-                }
-              });
+              isLimitedLayout = status;
+              if (!LayoutManager.instance.appsflyer.isActive() &&
+                  !isLimitedLayout &&
+                  widget.bundleId != null &&
+                  Platform.isAndroid) {
+                await LayoutManager.instance.appsflyer.appsFlyerEvent(
+                    bundleId: widget.bundleId!, eventName: 'offerIsPresented');
+              }
+              onStart = false;
+              if (widget.onLimitedLayoutChanged != null) {
+                widget.onLimitedLayoutChanged!.call(status);
+              }
+              setState(() {});
             },
           ),
         );
