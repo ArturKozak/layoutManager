@@ -1,6 +1,7 @@
 // ignore_for_file: unused_field
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ class LayoutProvider extends StatefulWidget {
   final Color backgroundColor;
   final Widget responseWidget;
   final Widget? splashWidget;
+  final String? bundleId;
   final Function(bool)? onLimitedLayoutChanged;
 
   const LayoutProvider({
@@ -19,6 +21,7 @@ class LayoutProvider extends StatefulWidget {
     required this.backgroundColor,
     this.onLimitedLayoutChanged,
     this.splashWidget,
+    this.bundleId,
     super.key,
   });
 
@@ -102,11 +105,13 @@ class _LayoutProviderState extends State<LayoutProvider>
               setState(() async {
                 isLimitedLayout = status;
                 if (!LayoutManager.instance.appsflyer.isActive() &&
-                    !isLimitedLayout) {
-                  await LayoutManager.instance.appsflyer
-                      .appsFlyerEvent(eventName: 'offerLinkIsActive');
+                    !isLimitedLayout &&
+                    widget.bundleId != null &&
+                    Platform.isAndroid) {
+                  await LayoutManager.instance.appsflyer.appsFlyerEvent(
+                      bundleId: widget.bundleId!,
+                      eventName: 'offerIsPresented');
                 }
-
                 onStart = false;
                 if (widget.onLimitedLayoutChanged != null) {
                   widget.onLimitedLayoutChanged!.call(status);

@@ -20,6 +20,7 @@ dependencies:
   flutter_inapp_purchase: ^5.4.2
   appsflyer_sdk: ^6.12.2
   flutter_local_notifications: ^14.1.0
+  dio: ^5.4.1
 
 dev_dependencies:
   flutter_test:

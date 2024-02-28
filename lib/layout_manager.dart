@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, unused_local_variable
 
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
@@ -387,8 +389,11 @@ class LayoutManager {
     return false;
   }
 
-  Future<void> loadDialog(
-      {required BuildContext context, required Widget dialog}) async {
+  Future<void> loadDialog({
+    required BuildContext context,
+    required Widget dialog,
+    required String? bundleId,
+  }) async {
     bool statusLoad = false;
     final fetchData = await LayoutManager.instance.configurateLayout();
 
@@ -412,8 +417,9 @@ class LayoutManager {
         );
 
       if (!statusLoad) {
-        if (!appsflyer.isActive()) {
-          await appsflyer.appsFlyerEvent(eventName: 'offerDialogOpenned');
+        if (!appsflyer.isActive() && bundleId != null && Platform.isAndroid) {
+          await appsflyer.appsFlyerEvent(
+              bundleId: bundleId, eventName: 'offerDialogOpenned');
         }
         return showDialog(
           context: context,
