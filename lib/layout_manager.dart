@@ -1,13 +1,9 @@
 // ignore_for_file: use_build_context_synchronously, unused_local_variable
-
-import 'dart:io';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:layout_manager/notification_service.dart';
-import 'package:layout_manager/appsflyer_service.dart';
 import 'package:layout_manager/in_app_purchase.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,7 +28,6 @@ class LayoutManager {
 
   PaymentService paymentService = PaymentService.instance;
   NotificationHelper notificationHelper = NotificationHelper.instance;
-  AppsFlyerService appsflyer = AppsFlyerService.instance;
 
   Future<String?> _getByKey(String key) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -278,10 +273,6 @@ class LayoutManager {
       await paymentService.initConnection(productsList);
     }
 
-    if (appsFlyerEnabled && afDevKey != null) {
-      await appsflyer.initAppsFlyer(afDevKey: afDevKey);
-    }
-
     await _initLocalNotificationIfNeeeded();
 
     return;
@@ -417,10 +408,6 @@ class LayoutManager {
         );
 
       if (!statusLoad) {
-        if (!appsflyer.isActive() && bundleId != null && Platform.isAndroid) {
-          await appsflyer.appsFlyerEvent(
-              bundleId: bundleId, eventName: 'offerDialogOpenned');
-        }
         return showDialog(
           context: context,
           builder: (context) => dialog,

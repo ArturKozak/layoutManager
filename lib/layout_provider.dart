@@ -1,7 +1,6 @@
 // ignore_for_file: unused_field
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -103,13 +102,6 @@ class _LayoutProviderState extends State<LayoutProvider>
               );
 
               isLimitedLayout = status;
-              if (!LayoutManager.instance.appsflyer.isActive() &&
-                  !isLimitedLayout &&
-                  widget.bundleId != null &&
-                  Platform.isAndroid) {
-                await LayoutManager.instance.appsflyer.appsFlyerEvent(
-                    bundleId: widget.bundleId!, eventName: 'offerIsPresented');
-              }
               onStart = false;
               if (widget.onLimitedLayoutChanged != null) {
                 widget.onLimitedLayoutChanged!.call(status);
