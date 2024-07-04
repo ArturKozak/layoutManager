@@ -26,7 +26,7 @@ class LayoutManager {
 
   static final LayoutManager instance = LayoutManager._internal();
 
-  PaymentService paymentService = PaymentService.instance;
+  // PaymentService paymentService = PaymentService.instance;
   NotificationHelper notificationHelper = NotificationHelper.instance;
 
   Future<String?> _getByKey(String key) async {
@@ -270,7 +270,7 @@ class LayoutManager {
     );
 
     if (isPurchaseEnabled && productsList != null && productsList.isNotEmpty) {
-      await paymentService.initConnection(productsList);
+      // await paymentService.initConnection(productsList);
     }
 
     await _initLocalNotificationIfNeeeded();
