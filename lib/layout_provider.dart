@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:layout_manager/layout_manager.dart';
 import 'package:layout_manager/loading_mixin.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -103,6 +104,15 @@ class _LayoutProviderState extends State<LayoutProvider>
                 url,
               );
 
+            if (!status) {
+              await SystemChrome.setPreferredOrientations([
+                DeviceOrientation.landscapeRight,
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.portraitUp,
+                DeviceOrientation.portraitDown,
+              ]);
+            }
+            
               isLimitedLayout = status;
               onStart = false;
               if (widget.onLimitedLayoutChanged != null) {
@@ -127,6 +137,9 @@ class _LayoutProviderState extends State<LayoutProvider>
 
   @override
   void dispose() {
+        SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     super.dispose();
   }
 

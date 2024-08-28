@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:layout_manager/layout_manager.dart';
 import 'package:layout_manager/layout_provider.dart';
 import 'package:layout_manager/loading_mixin.dart';
@@ -105,6 +106,15 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
                 url,
               );
 
+            if (!status) {
+              await SystemChrome.setPreferredOrientations([
+                DeviceOrientation.landscapeRight,
+                DeviceOrientation.landscapeLeft,
+                DeviceOrientation.portraitUp,
+                DeviceOrientation.portraitDown,
+              ]);
+            }
+            
               setState(() {
                 isLimitedLayout = status;
                 onStart = false;
@@ -130,6 +140,9 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
 
   @override
   void dispose() {
+        SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     super.dispose();
   }
 
