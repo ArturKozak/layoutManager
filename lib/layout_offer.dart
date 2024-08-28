@@ -12,6 +12,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class LayoutOfferProvider extends StatefulWidget {
   final Color backgroundColor;
   final Widget responseWidget;
+  final Widget offlineWidget;
   final Widget? offerWidget;
 
   final bool isRedirect;
@@ -24,6 +25,7 @@ class LayoutOfferProvider extends StatefulWidget {
     this.offerWidget,
     this.isRedirect = false,
     super.key,
+    required this.offlineWidget,
   });
 
   @override
@@ -43,9 +45,9 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
   Future<void> _loadConnectionChecker() async {
     _onSubscription =
         Connectivity().onConnectivityChanged.listen((connectivityResult) async {
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi ||
-          connectivityResult == ConnectivityResult.ethernet) {
+      if (connectivityResult.contains(ConnectivityResult.mobile) ||
+          connectivityResult.contains(ConnectivityResult.wifi) ||
+          connectivityResult.contains(ConnectivityResult.ethernet)) {
         setState(() {
           reload();
 
@@ -53,7 +55,7 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
         });
       }
 
-      if (connectivityResult == ConnectivityResult.none) {
+      if (connectivityResult.contains(ConnectivityResult.none)) {
         setState(() {
           reload();
 
@@ -63,15 +65,15 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
     });
 
     final result = await Connectivity().checkConnectivity();
-    if (result == ConnectivityResult.mobile ||
-        result == ConnectivityResult.wifi ||
-        result == ConnectivityResult.ethernet) {
+    if (result.contains(ConnectivityResult.mobile) ||
+        result.contains(ConnectivityResult.wifi) ||
+        result.contains(ConnectivityResult.ethernet)) {
       setState(() {
         isOffline = false;
       });
     }
 
-    if (result == ConnectivityResult.none) {
+    if (result.contains(ConnectivityResult.none)) {
       setState(() {
         isOffline = true;
       });
@@ -133,74 +135,77 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: widget.backgroundColor,
-      body: LayoutBuilder(
-        builder: (context, snapshot) {
-          if (loading) {
-            return SizedBox.expand(
-              child: ColoredBox(
-                color: widget.backgroundColor,
-                child: const Center(
-                  child: SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-              ),
-            );
-          }
-
-          if (webViewController == null) {
-            return LayoutProvider(
-              responseWidget: widget.responseWidget,
-              backgroundColor: widget.backgroundColor,
-            );
-          }
-
-          if (isOffline) {
-            return LayoutProvider(
-              responseWidget: widget.responseWidget,
-              backgroundColor: widget.backgroundColor,
-            );
-          }
-
-          if (onStart) {
-            return widget.offerWidget ??
-                SizedBox.expand(
-                  child: ColoredBox(
-                    color: widget.backgroundColor,
-                    child: const Center(
-                      child: SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: CircularProgressIndicator(),
+    return isOffline
+        ? widget.offlineWidget
+        : Scaffold(
+            backgroundColor: widget.backgroundColor,
+            body: LayoutBuilder(
+              builder: (context, snapshot) {
+                if (loading) {
+                  return SizedBox.expand(
+                    child: ColoredBox(
+                      color: widget.backgroundColor,
+                      child: const Center(
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: CircularProgressIndicator(),
+                        ),
                       ),
                     ),
-                  ),
-                );
-          }
+                  );
+                }
 
-          if (isLimitedLayout) {
-            return LayoutProvider(
-              responseWidget: widget.responseWidget,
-              backgroundColor: widget.backgroundColor,
-            );
-          } else {
-            return !widget.isRedirect
-                ? widget.offerWidget ??
-                    LayoutProvider(
-                      responseWidget: widget.responseWidget,
-                      backgroundColor: widget.backgroundColor,
-                    )
-                : LayoutProvider(
+                if (webViewController == null) {
+                  return LayoutProvider(
                     responseWidget: widget.responseWidget,
                     backgroundColor: widget.backgroundColor,
+                    offlineWidget: widget.offlineWidget,
                   );
-          }
-        },
-      ),
-    );
+                }
+
+                if (isOffline) {
+                  return widget.offlineWidget;
+                }
+
+                if (onStart) {
+                  return widget.offerWidget ??
+                      SizedBox.expand(
+                        child: ColoredBox(
+                          color: widget.backgroundColor,
+                          child: const Center(
+                            child: SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
+                      );
+                }
+
+                if (isLimitedLayout) {
+                  return LayoutProvider(
+                    responseWidget: widget.responseWidget,
+                    backgroundColor: widget.backgroundColor,
+                    offlineWidget: widget.offlineWidget,
+                  );
+                } else {
+                  return !widget.isRedirect
+                      ? widget.offerWidget ??
+                          LayoutProvider(
+                            responseWidget: widget.responseWidget,
+                            backgroundColor: widget.backgroundColor,
+                            offlineWidget: widget.offlineWidget,
+                          )
+                      : LayoutProvider(
+                          responseWidget: widget.responseWidget,
+                          backgroundColor: widget.backgroundColor,
+                          offlineWidget: widget.offlineWidget,
+                        );
+                }
+              },
+            ),
+          );
   }
 }

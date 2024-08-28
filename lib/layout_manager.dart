@@ -1,18 +1,13 @@
 // ignore_for_file: use_build_context_synchronously, unused_local_variable
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:layout_manager/notification_service.dart';
-import 'package:layout_manager/in_app_purchase.dart';
 import 'package:parse_server_sdk/parse_server_sdk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LayoutManager {
-  static const firebaseKey = 'firebaseKey';
-  static const firebaseRemoteKey = 'firebaseRemoteKey';
   static const parseKey = 'parseKey';
   static const parseRemoteKey = 'parseRemoteKey';
   static const integrationKey = 'integrationKey';
@@ -37,15 +32,6 @@ class LayoutManager {
         return getValueFromParseRemoteConfig(
           key,
           prefs,
-        );
-      }
-    }
-
-    if (_and(prefs, firebaseKey)) {
-      if (_and(prefs, firebaseRemoteKey)) {
-        return getValueFromFirebaseRemoteConfig(
-          prefs,
-          key,
         );
       }
     }
@@ -169,97 +155,17 @@ class LayoutManager {
     }
   }
 
-  Future<void> _getDataFromFB(
-      bool firebaseEnabled, SharedPreferences prefs) async {
-    if (firebaseEnabled) {
-      await Firebase.initializeApp();
-
-      final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setConfigSettings(
-        RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: Duration.zero,
-        ),
-      );
-
-      await remoteConfig.fetch();
-
-      await remoteConfig.fetchAndActivate();
-
-      if (remoteConfig.getAll().isNotEmpty &&
-          remoteConfig.getAll().keys.isNotEmpty &&
-          remoteConfig.getAll().values.isNotEmpty) {
-        await prefs.setString(
-          limitedKey,
-          remoteConfig.getString(
-            remoteConfig.getAll().keys.firstWhere(
-                  (element) =>
-                      _isStringOnlyLetters(element) &&
-                      !element.contains('notification'),
-                  orElse: () => '',
-                ),
-          ),
-        );
-
-        for (final key in remoteConfig.getAll().keys) {
-          if (key.startsWith('_')) {
-            final value = remoteConfig.getString(key);
-
-            await prefs.setString(integrationKey, value);
-          }
-
-          if (key.contains('notificationTitle')) {
-            final value = remoteConfig.getString(key);
-
-            await prefs.setString(notificationTitleKey, value);
-          }
-
-          if (key.contains('notificationBody')) {
-            final value = remoteConfig.getString(key);
-
-            await prefs.setString(notificationBodyKey, value);
-          }
-
-          if (key.contains('notificationInterval')) {
-            final value = remoteConfig.getString(key);
-
-            await prefs.setString(notificationIntervalKey, value);
-          }
-
-          if (key.contains('notificationEnabled')) {
-            final value = remoteConfig.getString(key);
-
-            await prefs.setString(notificationEnabledKey, value);
-          }
-        }
-      }
-    }
-  }
-
   Future<void> initPlugin({
-    bool firebaseEnabled = false,
-    bool firebaseRemoteEnabled = false,
     bool parseEnabled = false,
     bool parseRemoteEnabled = false,
-    bool appsFlyerEnabled = false,
-    bool isPurchaseEnabled = false,
-    String? afDevKey,
-    List<String>? productsList,
     String? parseAppId,
     String? parseServerUrl,
     String? parseClientKey,
   }) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    await prefs.setBool(firebaseKey, firebaseEnabled);
-    await prefs.setBool(firebaseRemoteKey, firebaseRemoteEnabled);
     await prefs.setBool(parseKey, parseEnabled);
     await prefs.setBool(parseRemoteKey, parseRemoteEnabled);
-
-    await _getDataFromFB(
-      firebaseEnabled,
-      prefs,
-    );
 
     await _getDataFromParse(
       parseEnabled,
@@ -268,10 +174,6 @@ class LayoutManager {
       parseClientKey,
       prefs,
     );
-
-    if (isPurchaseEnabled && productsList != null && productsList.isNotEmpty) {
-      // await paymentService.initConnection(productsList);
-    }
 
     await _initLocalNotificationIfNeeeded();
 
@@ -297,25 +199,6 @@ class LayoutManager {
     }
   }
 
-  Future<String?> getValueFromFirebaseRemoteConfig(
-    SharedPreferences prefs,
-    String key,
-  ) async {
-    if (_or(prefs, firebaseKey)) {
-      return null;
-    }
-
-    if (_or(prefs, firebaseRemoteKey)) {
-      return null;
-    }
-
-    try {
-      return prefs.getString(key);
-    } on Exception catch (_) {
-      return null;
-    }
-  }
-
   Future<String?> configurateLayout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -324,15 +207,6 @@ class LayoutManager {
         return getValueFromParseRemoteConfig(
           integrationKey,
           prefs,
-        );
-      }
-    }
-
-    if (_and(prefs, firebaseKey)) {
-      if (_and(prefs, firebaseRemoteKey)) {
-        return getValueFromFirebaseRemoteConfig(
-          prefs,
-          integrationKey,
         );
       }
     }
@@ -352,21 +226,6 @@ class LayoutManager {
         final value = await getValueFromParseRemoteConfig(
           limitedKey,
           prefs,
-        );
-
-        if (value == null) {
-          return false;
-        }
-
-        return currentUrl.contains(value);
-      }
-    }
-
-    if (_and(prefs, firebaseKey)) {
-      if (_and(prefs, firebaseRemoteKey)) {
-        final value = await getValueFromFirebaseRemoteConfig(
-          prefs,
-          limitedKey,
         );
 
         if (value == null) {
@@ -418,21 +277,5 @@ class LayoutManager {
     }
 
     return;
-  }
-
-  Future<Map<String, RemoteConfigValue>> getRemoteFB() async {
-    final remoteConfig = FirebaseRemoteConfig.instance;
-    await remoteConfig.setConfigSettings(
-      RemoteConfigSettings(
-        fetchTimeout: const Duration(seconds: 30),
-        minimumFetchInterval: Duration.zero,
-      ),
-    );
-
-    await remoteConfig.fetch();
-
-    await remoteConfig.fetchAndActivate();
-
-    return remoteConfig.getAll();
   }
 }

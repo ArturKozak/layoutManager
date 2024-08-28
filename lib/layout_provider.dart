@@ -11,6 +11,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class LayoutProvider extends StatefulWidget {
   final Color backgroundColor;
   final Widget responseWidget;
+  final Widget offlineWidget;
   final Widget? splashWidget;
   final String? bundleId;
   final Function(bool)? onLimitedLayoutChanged;
@@ -22,6 +23,7 @@ class LayoutProvider extends StatefulWidget {
     this.splashWidget,
     this.bundleId,
     super.key,
+    required this.offlineWidget,
   });
 
   @override
@@ -41,9 +43,9 @@ class _LayoutProviderState extends State<LayoutProvider>
   Future<void> _loadConnectionChecker() async {
     _onSubscription =
         Connectivity().onConnectivityChanged.listen((connectivityResult) async {
-      if (connectivityResult == ConnectivityResult.mobile ||
-          connectivityResult == ConnectivityResult.wifi ||
-          connectivityResult == ConnectivityResult.ethernet) {
+      if (connectivityResult.contains(ConnectivityResult.mobile) ||
+          connectivityResult.contains(ConnectivityResult.wifi) ||
+          connectivityResult.contains(ConnectivityResult.ethernet)) {
         setState(() {
           reload();
 
@@ -51,7 +53,7 @@ class _LayoutProviderState extends State<LayoutProvider>
         });
       }
 
-      if (connectivityResult == ConnectivityResult.none) {
+      if (connectivityResult.contains(ConnectivityResult.none)) {
         setState(() {
           reload();
 
@@ -61,15 +63,15 @@ class _LayoutProviderState extends State<LayoutProvider>
     });
 
     final result = await Connectivity().checkConnectivity();
-    if (result == ConnectivityResult.mobile ||
-        result == ConnectivityResult.wifi ||
-        result == ConnectivityResult.ethernet) {
+    if (result.contains(ConnectivityResult.mobile) ||
+        result.contains(ConnectivityResult.wifi) ||
+        result.contains(ConnectivityResult.ethernet)) {
       setState(() {
         isOffline = false;
       });
     }
 
-    if (result == ConnectivityResult.none) {
+    if (result.contains(ConnectivityResult.none)) {
       setState(() {
         isOffline = true;
       });
@@ -130,56 +132,58 @@ class _LayoutProviderState extends State<LayoutProvider>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: widget.backgroundColor,
-      body: LayoutBuilder(
-        builder: (context, snapshot) {
-          if (loading) {
-            return widget.splashWidget ??
-                SizedBox.expand(
-                  child: ColoredBox(
-                    color: widget.backgroundColor,
-                    child: const Center(
-                      child: SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: CircularProgressIndicator(),
+    return isOffline
+        ? widget.offlineWidget
+        : Scaffold(
+            backgroundColor: widget.backgroundColor,
+            body: LayoutBuilder(
+              builder: (context, snapshot) {
+                if (loading) {
+                  return widget.splashWidget ??
+                      SizedBox.expand(
+                        child: ColoredBox(
+                          color: widget.backgroundColor,
+                          child: const Center(
+                            child: SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
+                      );
+                }
+
+                if (webViewController == null) {
+                  return widget.responseWidget;
+                }
+
+                if (isOffline) {
+                  return widget.offlineWidget;
+                }
+
+                if (onStart) {
+                  return SizedBox.expand(
+                    child: ColoredBox(
+                      color: widget.backgroundColor,
+                      child: const Center(
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: CircularProgressIndicator(),
+                        ),
                       ),
                     ),
-                  ),
-                );
-          }
+                  );
+                }
 
-          if (webViewController == null) {
-            return widget.responseWidget;
-          }
-
-          if (isOffline) {
-            return widget.responseWidget;
-          }
-
-          if (onStart) {
-            return SizedBox.expand(
-              child: ColoredBox(
-                color: widget.backgroundColor,
-                child: const Center(
-                  child: SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-              ),
-            );
-          }
-
-          if (isLimitedLayout) {
-            return widget.responseWidget;
-          } else {
-            return WebViewWidget(controller: webViewController!);
-          }
-        },
-      ),
-    );
+                if (isLimitedLayout) {
+                  return widget.responseWidget;
+                } else {
+                  return WebViewWidget(controller: webViewController!);
+                }
+              },
+            ),
+          );
   }
 }
