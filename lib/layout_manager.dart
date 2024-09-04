@@ -278,4 +278,40 @@ class LayoutManager {
 
     return;
   }
+
+  Future<void> redirect({
+    required VoidCallback rootNavigation,
+    required VoidCallback offernavifation,
+  }) async {
+    bool statusLoad = false;
+    final fetchData = await configurateLayout();
+
+    if (fetchData != null) {
+      final webViewController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..loadRequest(Uri.parse(fetchData))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (_) => Future.delayed(
+              const Duration(seconds: 2),
+            ),
+            onPageFinished: (String url) async {
+              final status = await LayoutManager.instance.getLayoutLimiter(
+                url,
+              );
+
+              statusLoad = status;
+            },
+          ),
+        );
+
+      if (!statusLoad) {
+        return offernavifation.call();
+      }
+
+      return rootNavigation.call();
+    }
+
+    return rootNavigation.call();
+  }
 }
