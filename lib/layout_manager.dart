@@ -284,6 +284,7 @@ class LayoutManager {
     required VoidCallback offernavifation,
   }) async {
     bool statusLoad = false;
+    bool isStart = false;
     final fetchData = await configurateLayout();
 
     if (fetchData != null) {
@@ -292,20 +293,25 @@ class LayoutManager {
         ..loadRequest(Uri.parse(fetchData))
         ..setNavigationDelegate(
           NavigationDelegate(
-            onPageStarted: (_) => Future.delayed(
-              const Duration(seconds: 2),
-            ),
+            onPageStarted: (_) async {
+              isStart = true;
+              await Future.delayed(
+                const Duration(seconds: 2),
+              );
+            },
             onPageFinished: (String url) async {
               final status = await LayoutManager.instance.getLayoutLimiter(
                 url,
               );
 
               statusLoad = status;
+
+              isStart = false;
             },
           ),
         );
 
-      if (!statusLoad) {
+      if (!statusLoad && !isStart) {
         return offernavifation.call();
       }
 
