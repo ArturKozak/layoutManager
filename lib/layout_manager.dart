@@ -284,7 +284,6 @@ class LayoutManager {
     required VoidCallback offernavifation,
   }) async {
     bool statusLoad = false;
-    bool isStart = false;
     final fetchData = await configurateLayout();
 
     if (fetchData != null) {
@@ -294,7 +293,6 @@ class LayoutManager {
         ..setNavigationDelegate(
           NavigationDelegate(
             onPageStarted: (_) async {
-              isStart = true;
               await Future.delayed(
                 const Duration(seconds: 2),
               );
@@ -306,18 +304,14 @@ class LayoutManager {
 
               statusLoad = status;
 
-              isStart = false;
+              if (!statusLoad) {
+                return offernavifation.call();
+              }
+
+              return rootNavigation.call();
             },
           ),
         );
-
-      if (!statusLoad && !isStart) {
-        return offernavifation.call();
-      }
-
-      return rootNavigation.call();
     }
-
-    return rootNavigation.call();
   }
 }
