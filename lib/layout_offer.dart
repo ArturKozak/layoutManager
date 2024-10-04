@@ -6,31 +6,34 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:layout_manager/layout_manager.dart';
+import 'package:layout_manager/layout_provider.dart';
 import 'package:layout_manager/loading_mixin.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class LayoutProvider extends StatefulWidget {
+class LayoutOfferProvider extends StatefulWidget {
   final Color backgroundColor;
   final Widget responseWidget;
   final Widget offlineWidget;
-  final Widget? splashWidget;
+  final Widget? offerWidget;
+  final bool isRedirect;
   final Function(bool)? onLimitedLayoutChanged;
 
-  const LayoutProvider({
+  const LayoutOfferProvider({
     required this.responseWidget,
     required this.backgroundColor,
     required this.offlineWidget,
     this.onLimitedLayoutChanged,
-    this.splashWidget,
+    this.offerWidget,
+    this.isRedirect = false,
     super.key,
   });
 
   @override
-  State<LayoutProvider> createState() => _LayoutProviderState();
+  State<LayoutOfferProvider> createState() => _LayoutOfferProviderState();
 }
 
-class _LayoutProviderState extends State<LayoutProvider>
-    with LoadingMixin<LayoutProvider> {
+class _LayoutOfferProviderState extends State<LayoutOfferProvider>
+    with LoadingMixin<LayoutOfferProvider> {
   WebViewController? webViewController;
   late final StreamSubscription _onSubscription;
   bool isLimitedLayout = false;
@@ -111,12 +114,13 @@ class _LayoutProviderState extends State<LayoutProvider>
                 ]);
               }
 
-              isLimitedLayout = status;
-              onStart = false;
-              if (widget.onLimitedLayoutChanged != null) {
-                widget.onLimitedLayoutChanged!.call(status);
-              }
-              setState(() {});
+              setState(() {
+                isLimitedLayout = status;
+                onStart = false;
+                if (widget.onLimitedLayoutChanged != null) {
+                  widget.onLimitedLayoutChanged!.call(status);
+                }
+              });
             },
           ),
         );
@@ -150,30 +154,6 @@ class _LayoutProviderState extends State<LayoutProvider>
             body: LayoutBuilder(
               builder: (context, snapshot) {
                 if (loading) {
-                  return widget.splashWidget ??
-                      SizedBox.expand(
-                        child: ColoredBox(
-                          color: widget.backgroundColor,
-                          child: const Center(
-                            child: SizedBox(
-                              height: 40,
-                              width: 40,
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
-                        ),
-                      );
-                }
-
-                if (webViewController == null) {
-                  return widget.responseWidget;
-                }
-
-                if (isOffline) {
-                  return widget.offlineWidget;
-                }
-
-                if (onStart) {
                   return SizedBox.expand(
                     child: ColoredBox(
                       color: widget.backgroundColor,
@@ -188,10 +168,53 @@ class _LayoutProviderState extends State<LayoutProvider>
                   );
                 }
 
+                if (webViewController == null) {
+                  return LayoutProvider(
+                    responseWidget: widget.responseWidget,
+                    backgroundColor: widget.backgroundColor,
+                    offlineWidget: widget.offlineWidget,
+                  );
+                }
+
+                if (isOffline) {
+                  return widget.offlineWidget;
+                }
+
+                if (onStart) {
+                  return widget.offerWidget ??
+                      SizedBox.expand(
+                        child: ColoredBox(
+                          color: widget.backgroundColor,
+                          child: const Center(
+                            child: SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
+                      );
+                }
+
                 if (isLimitedLayout) {
-                  return widget.responseWidget;
+                  return LayoutProvider(
+                    responseWidget: widget.responseWidget,
+                    backgroundColor: widget.backgroundColor,
+                    offlineWidget: widget.offlineWidget,
+                  );
                 } else {
-                  return WebViewWidget(controller: webViewController!);
+                  return !widget.isRedirect
+                      ? widget.offerWidget ??
+                          LayoutProvider(
+                            responseWidget: widget.responseWidget,
+                            backgroundColor: widget.backgroundColor,
+                            offlineWidget: widget.offlineWidget,
+                          )
+                      : LayoutProvider(
+                          responseWidget: widget.responseWidget,
+                          backgroundColor: widget.backgroundColor,
+                          offlineWidget: widget.offlineWidget,
+                        );
                 }
               },
             ),
