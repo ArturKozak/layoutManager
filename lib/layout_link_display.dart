@@ -4,7 +4,11 @@ import 'package:webview_flutter/webview_flutter.dart';
 class LayoutLinkDisplay extends StatefulWidget {
   final String link;
   final PreferredSizeWidget? appBar;
-  const LayoutLinkDisplay({required this.link, this.appBar, super.key});
+  const LayoutLinkDisplay({
+    required this.link,
+    this.appBar,
+    super.key,
+  });
 
   @override
   State<LayoutLinkDisplay> createState() => _LayoutLinkDisplayState();
