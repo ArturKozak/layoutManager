@@ -15,18 +15,17 @@ class LayoutOfferProvider extends StatefulWidget {
   final Widget responseWidget;
   final Widget offlineWidget;
   final Widget? offerWidget;
-
   final bool isRedirect;
   final Function(bool)? onLimitedLayoutChanged;
 
   const LayoutOfferProvider({
     required this.responseWidget,
     required this.backgroundColor,
+    required this.offlineWidget,
     this.onLimitedLayoutChanged,
     this.offerWidget,
     this.isRedirect = false,
     super.key,
-    required this.offlineWidget,
   });
 
   @override
@@ -106,15 +105,15 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
                 url,
               );
 
-            if (!status) {
-              await SystemChrome.setPreferredOrientations([
-                DeviceOrientation.landscapeRight,
-                DeviceOrientation.landscapeLeft,
-                DeviceOrientation.portraitUp,
-                DeviceOrientation.portraitDown,
-              ]);
-            }
-            
+              if (!status) {
+                await SystemChrome.setPreferredOrientations([
+                  DeviceOrientation.landscapeRight,
+                  DeviceOrientation.landscapeLeft,
+                  DeviceOrientation.portraitUp,
+                  DeviceOrientation.portraitDown,
+                ]);
+              }
+
               setState(() {
                 isLimitedLayout = status;
                 onStart = false;
@@ -140,7 +139,7 @@ class _LayoutOfferProviderState extends State<LayoutOfferProvider>
 
   @override
   void dispose() {
-        SystemChrome.setPreferredOrientations([
+    SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
     super.dispose();

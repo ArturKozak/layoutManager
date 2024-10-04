@@ -14,17 +14,15 @@ class LayoutProvider extends StatefulWidget {
   final Widget responseWidget;
   final Widget offlineWidget;
   final Widget? splashWidget;
-  final String? bundleId;
   final Function(bool)? onLimitedLayoutChanged;
 
   const LayoutProvider({
     required this.responseWidget,
     required this.backgroundColor,
+    required this.offlineWidget,
     this.onLimitedLayoutChanged,
     this.splashWidget,
-    this.bundleId,
     super.key,
-    required this.offlineWidget,
   });
 
   @override
@@ -104,15 +102,15 @@ class _LayoutProviderState extends State<LayoutProvider>
                 url,
               );
 
-            if (!status) {
-              await SystemChrome.setPreferredOrientations([
-                DeviceOrientation.landscapeRight,
-                DeviceOrientation.landscapeLeft,
-                DeviceOrientation.portraitUp,
-                DeviceOrientation.portraitDown,
-              ]);
-            }
-            
+              if (!status) {
+                await SystemChrome.setPreferredOrientations([
+                  DeviceOrientation.landscapeRight,
+                  DeviceOrientation.landscapeLeft,
+                  DeviceOrientation.portraitUp,
+                  DeviceOrientation.portraitDown,
+                ]);
+              }
+
               isLimitedLayout = status;
               onStart = false;
               if (widget.onLimitedLayoutChanged != null) {
@@ -137,7 +135,7 @@ class _LayoutProviderState extends State<LayoutProvider>
 
   @override
   void dispose() {
-        SystemChrome.setPreferredOrientations([
+    SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
     super.dispose();

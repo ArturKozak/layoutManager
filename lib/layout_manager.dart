@@ -21,7 +21,6 @@ class LayoutManager {
 
   static final LayoutManager instance = LayoutManager._internal();
 
-  // PaymentService paymentService = PaymentService.instance;
   NotificationHelper notificationHelper = NotificationHelper.instance;
 
   Future<String?> _getByKey(String key) async {
@@ -242,7 +241,6 @@ class LayoutManager {
   Future<void> loadDialog({
     required BuildContext context,
     required Widget dialog,
-    required String? bundleId,
   }) async {
     bool statusLoad = false;
     final fetchData = await LayoutManager.instance.configurateLayout();
