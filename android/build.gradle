@@ -48,6 +48,7 @@ android {
     dependencies {
         testImplementation 'org.jetbrains.kotlin:kotlin-test'
         testImplementation 'org.mockito:mockito-core:5.0.0'
+        implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
     }
 
     testOptions {
